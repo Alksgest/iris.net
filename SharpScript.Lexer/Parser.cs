@@ -4,40 +4,74 @@ namespace SharpScript.Lexer;
 
 public class Parser
 {
-    private List<Token> _tokens;
+    private readonly List<Token> _tokens;
     private int _currentTokenIndex = 0;
+
+    private List<Node> _statements;
 
     public Parser(List<Token> tokens)
     {
         _tokens = tokens;
     }
 
-    public Tree ParseProgram()
+    public Tree ParseTokens()
     {
-        var statements = new List<Node>();
+        _statements = new List<Node>();
         while (_currentTokenIndex < _tokens.Count)
         {
-            statements.Add(ParseStatement());
+            _statements.Add(ParseStatement());
         }
 
-        return new Tree(statements);
+        return new Tree(_statements);
     }
 
     private Node ParseStatement()
     {
         if (Match(TokenType.Keyword, "const"))
         {
-            ++_currentTokenIndex;
-            return ParseConstVariableDeclaration();
+            ++_currentTokenIndex; // skip const key word
+            var node =  ParseConstVariableDeclaration();
+            Expect(TokenType.Punctuation, ";");
+            return node;
         }
 
         if (Match(TokenType.Keyword, "let"))
         {
-            ++_currentTokenIndex;
-            return ParseLetVariableDeclaration();
+            ++_currentTokenIndex; // skip let key word
+            var node =  ParseLetVariableDeclaration();
+            Expect(TokenType.Punctuation, ";");
+            return node;
+        }
+
+        if (Match(TokenType.Identifier))
+        {
+            var node =  ParseIdentifierExpression();
+            Expect(TokenType.Punctuation, ";");
+            return node;
         }
 
         throw new Exception("Expected a statement");
+    }
+
+    private Node ParseIdentifierExpression()
+    {
+        // assign value if left part if variable name
+        var nameToken = Expect(TokenType.Identifier);
+        if (Match(TokenType.Operator, "="))
+        {
+            return ParseVariableAssignment(nameToken);
+        }
+        
+        // handle function call
+
+        throw new Exception("Invalid identifier expression");
+    }
+
+    private Node ParseVariableAssignment(Token nameToken)
+    {
+        _ = Expect(TokenType.Operator, "=");
+        var value = ParseExpression();
+        return new VariableAssignment(nameToken.Value, value);
     }
 
     private VariableDeclaration ParseConstVariableDeclaration()
@@ -45,14 +79,13 @@ public class Parser
         var nameToken = Expect(TokenType.Identifier);
         _ = Expect(TokenType.Operator, "=");
         var value = ParseExpression();
-        Expect(TokenType.Punctuation, ";");
         return new VariableDeclaration(nameToken.Value, value);
     }
 
     private VariableDeclaration ParseLetVariableDeclaration()
     {
         var nameToken = Expect(TokenType.Identifier);
-        Node value = null;
+        Node? value = null;
         try
         {
             _ = Expect(TokenType.Operator, "=");
@@ -63,16 +96,20 @@ public class Parser
             // ignored
         }
 
-        Expect(TokenType.Punctuation, ";");
         return new VariableDeclaration(nameToken.Value, value);
     }
 
-    private Node ParseExpression()
+    private Node? ParseExpression()
     {
         // For now, we'll just handle numbers
         if (Match(TokenType.NumberValue))
         {
             return new NumberExpression(Expect(TokenType.NumberValue).Value);
+        }
+
+        if (Match(TokenType.Identifier))
+        {
+            return new VariableExpression(Expect(TokenType.Identifier).Value);
         }
 
         throw new Exception("Expected a number");

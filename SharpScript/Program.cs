@@ -2,7 +2,7 @@
 
  var tokenizer = new Tokenizer();
  
- var tokens = tokenizer.Process("const a = 5; let s;");
+ var tokens = tokenizer.Process("const a = 5; let b; b = a; a = 3;"); 
 
  foreach (var token in tokens)
  {
@@ -10,6 +10,6 @@
  }
 
  var parser = new Parser(tokens);
- var tree = parser.ParseProgram();
+ var tree = parser.ParseTokens();
 
  Console.WriteLine(tree);

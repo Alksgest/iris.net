@@ -16,6 +16,28 @@ public class VariableDeclaration : Node
     }
 }
 
+public class VariableExpression : Node
+{
+    public string Value { get; }
+
+    public VariableExpression(string value)
+    {
+        Value = value;
+    }
+}
+
+public class VariableAssignment : Node
+{
+    public string Name { get; }
+    public Node? Value { get; }
+
+    public VariableAssignment(string name, Node? value)
+    {
+        Name = name;
+        Value = value;
+    }
+}
+
 public class NumberExpression : Node
 {
     public string Value { get; }
