@@ -1,0 +1,12 @@
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\bin\Debug\net7.0\SharpScript.Lexer.deps.json
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\bin\Debug\net7.0\SharpScript.Lexer.dll
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\bin\Debug\net7.0\SharpScript.Lexer.pdb
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\obj\Debug\net7.0\SharpScript.Lexer.csproj.AssemblyReference.cache
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\obj\Debug\net7.0\SharpScript.Lexer.GeneratedMSBuildEditorConfig.editorconfig
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\obj\Debug\net7.0\SharpScript.Lexer.AssemblyInfoInputs.cache
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\obj\Debug\net7.0\SharpScript.Lexer.AssemblyInfo.cs
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\obj\Debug\net7.0\SharpScript.Lexer.csproj.CoreCompileInputs.cache
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\obj\Debug\net7.0\SharpScript.Lexer.dll
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\obj\Debug\net7.0\refint\SharpScript.Lexer.dll
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\obj\Debug\net7.0\SharpScript.Lexer.pdb
+E:\PersonalData\Education\modern cryptology\SharpScript\SharpScript.Lexer\obj\Debug\net7.0\ref\SharpScript.Lexer.dll
