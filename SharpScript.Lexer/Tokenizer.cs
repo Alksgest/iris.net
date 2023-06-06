@@ -59,7 +59,7 @@ public class Token
 public class Tokenizer
 {
     private readonly List<string> _operators = new() { "=" };
-    private readonly List<string> _punctuations = new() { ";" };
+    private readonly List<string> _punctuations = new() { ";", "(", ")", "," };
     private readonly List<string> _keyWords = new() { "const", "let" };
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
 
@@ -73,12 +73,18 @@ public class Tokenizer
 
         foreach (var c in input)
         {
-            if (_punctuations.Contains($"{c}"))
+            if (c == ';')
             {
-                tokens.Add(ParseToken(tokenBuilder.ToString()));
+                if (tokenBuilder.Length > 0)
+                {
+                    tokens.Add(ParseToken(tokenBuilder.ToString()));
+                }
+
                 tokenBuilder.Clear();
                 tokenBuilder.Append(c);
                 _tokenizerState = TokenizerState.Punctuation;
+
+                continue;
             }
 
             switch (_tokenizerState)
@@ -114,60 +120,6 @@ public class Tokenizer
         return tokens;
     }
 
-    private void HandlePunctuation(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
-    {
-        // Right now we handle only the end of statement char ';'
-        FinalizeToken(tokenBuilder, tokens);
-    }
-
-    private void HandleOperator(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
-    {
-        var intermediateToken = tokenBuilder.ToString();
-        if (_operators.Contains($"{intermediateToken}{c}"))
-        {
-            tokenBuilder.Append(c);
-        }
-        else if (_emptySymbols.Contains(c))
-        {
-            FinalizeToken(tokenBuilder, tokens);
-        }
-    }
-
-    private void HandleNumber(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
-    {
-        if (char.IsNumber(c))
-        {
-            tokenBuilder.Append(c);
-        }
-        else if (_emptySymbols.Contains(c))
-        {
-            FinalizeToken(tokenBuilder, tokens);
-        }
-    }
-
-    private void HandleWord(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
-    {
-        //TODO: It is possible to have word with integer number at the end 
-        if (char.IsAsciiLetter(c))
-        {
-            _tokenizerState = TokenizerState.Word;
-            tokenBuilder.Append(c);
-        }
-        else if (_emptySymbols.Contains(c))
-        {
-            FinalizeToken(tokenBuilder, tokens);
-        }
-    }
-
-    private void FinalizeToken(StringBuilder tokenBuilder, ICollection<Token> tokens)
-    {
-        _tokenizerState = TokenizerState.Start;
-        var token = tokenBuilder.ToString();
-        tokens.Add(ParseToken(token));
-
-        tokenBuilder.Clear();
-    }
-
     private void HandleStart(char c, StringBuilder tokenBuilder)
     {
         if (char.IsAsciiLetter(c))
@@ -192,8 +144,84 @@ public class Tokenizer
         }
         else if (_emptySymbols.Contains(c))
         {
-
         }
+    }
+
+    private void HandlePunctuation(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    {
+        if (_punctuations.Contains($"{c}"))
+        {
+            tokenBuilder.Append(c);
+        }
+        else if (_emptySymbols.Contains(c))
+        {
+            FinalizeToken(tokenBuilder, tokens);
+        }
+    }
+
+    private void HandleOperator(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    {
+        var intermediateToken = tokenBuilder.ToString();
+        if (_operators.Contains($"{intermediateToken}{c}"))
+        {
+            tokenBuilder.Append(c);
+        }
+        else if (_emptySymbols.Contains(c))
+        {
+            FinalizeToken(tokenBuilder, tokens);
+        }
+    }
+
+    private void HandleNumber(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    {
+        if (char.IsNumber(c))
+        {
+            tokenBuilder.Append(c);
+        }
+        else if (_punctuations.Contains($"{c}"))
+        {
+            HandlePunctuationStart(c, tokenBuilder, tokens);
+        }
+        else if (_emptySymbols.Contains(c))
+        {
+            FinalizeToken(tokenBuilder, tokens);
+        }
+    }
+
+    private void HandleWord(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    {
+        //TODO: It is possible to have word with integer number at the end 
+        if (char.IsAsciiLetter(c))
+        {
+            _tokenizerState = TokenizerState.Word;
+            tokenBuilder.Append(c);
+        }
+        else if (_punctuations.Contains($"{c}"))
+        {
+            HandlePunctuationStart(c, tokenBuilder, tokens);
+        }
+        else if (_emptySymbols.Contains(c))
+        {
+            FinalizeToken(tokenBuilder, tokens);
+        }
+    }
+
+    private void HandlePunctuationStart(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    {
+        var token = tokenBuilder.ToString();
+        tokens.Add(ParseToken(token));
+        tokenBuilder.Clear();
+        _tokenizerState = TokenizerState.Start;
+        tokens.Add(ParseToken($"{c}"));
+    }
+
+    private void FinalizeToken(StringBuilder tokenBuilder, ICollection<Token> tokens)
+    {
+        _tokenizerState = TokenizerState.Start;
+        var token = tokenBuilder.ToString();
+        tokens.Add(ParseToken(token));
+
+        tokenBuilder.Clear();
     }
 
     private Token ParseToken(string token)
