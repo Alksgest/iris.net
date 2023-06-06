@@ -1,4 +1,5 @@
 using SharpScript.Lexer.Models.Ast;
+using SharpScript.Lexer.Models.Ast.Assignments;
 using SharpScript.Lexer.Models.Ast.Declarations;
 using SharpScript.Lexer.Models.Ast.Expressions;
 
@@ -71,15 +72,13 @@ public class Parser
 
         if (Match(TokenType.Punctuation, "("))
         {
-            return ParseFunctionCall(nameToken);
+            return ParseFunctionCall(nameToken.Value);
         }
-
-        // handle function call
 
         throw new Exception("Invalid identifier expression");
     }
 
-    private Node ParseFunctionCall(Token nameToken)
+    private FunctionCall ParseFunctionCall(string value)
     {
         _ = Expect(TokenType.Punctuation, "(");
         
@@ -96,7 +95,7 @@ public class Parser
         
         _ = Expect(TokenType.Punctuation, ")");
         
-        return new FunctionCall(nameToken.Value, nodes);
+        return new FunctionCall(value, nodes);
     }
 
     private VariableAssignment ParseVariableAssignment(Token nameToken)
@@ -138,7 +137,16 @@ public class Parser
 
         if (Match(TokenType.Identifier))
         {
-            return new VariableExpression(Expect(TokenType.Identifier).Value);
+            // understand, that this is a call
+            if (!MatchNext(TokenType.Punctuation, "("))
+            {
+                return new VariableExpression(Expect(TokenType.Identifier).Value);
+            }
+
+            var token = Expect(TokenType.Identifier).Value;
+            var functionCall = ParseFunctionCall(token);
+                
+            return new FunctionCallExpression(token, functionCall);
         }
 
         throw new Exception("Expected a number");
@@ -149,6 +157,14 @@ public class Parser
         if (_currentTokenIndex >= _tokens.Count) return false;
 
         var token = _tokens[_currentTokenIndex];
+        return token.Type == type && (value == null || token.Value == value);
+    }
+    
+    private bool MatchNext(TokenType type, string? value = null)
+    {
+        if (_currentTokenIndex >= _tokens.Count) return false;
+
+        var token = _tokens[_currentTokenIndex + 1];
         return token.Type == type && (value == null || token.Value == value);
     }
 

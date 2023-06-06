@@ -1,18 +1,40 @@
-﻿ using SharpScript.Lexer;
+﻿using SharpScript.Lexer;
 
- var tokenizer = new Tokenizer();
- 
- var tokens = tokenizer.Process("const a = 5; const b = a; let c; c = a; print(a, b, 3);"); // const a = 5; let b; b = a; a = 3; // a(1, 2, 3); 
+namespace SharpScript;
 
- foreach (var token in tokens)
- {
-     Console.WriteLine($"{token.Type.ToString()}: {token.Value}");
- }
+public static class Program
+{
+    public static void Main(string[] args)
+    {
+        foreach (var arg in args)
+        {
+            Console.WriteLine(arg);
+        }
 
- var parser = new Parser(tokens);
- var tree = parser.ParseTokens();
+        if (args.Length == 0)
+        {
+            Console.WriteLine("No file to execute");
+        }
 
- Console.WriteLine(tree);
- 
- var evaluator = new Evaluator();
- evaluator.Evaluate(tree);
+        var fileName = args[0];
+
+        var tokenizer = new Tokenizer();
+
+        var fileContent = File.ReadAllText(fileName);
+
+        var tokens = tokenizer.Process(fileContent); // const a = 5; let b; b = a; a = 3; // a(1, 2, 3); 
+
+        // foreach (var token in tokens)
+        // {
+        //     Console.WriteLine($"{token.Type.ToString()}: {token.Value}");
+        // }
+
+        var parser = new Parser(tokens);
+        var tree = parser.ParseTokens();
+
+        // Console.WriteLine(tree);
+
+        var evaluator = new Evaluator();
+        evaluator.Evaluate(tree);
+    }
+}

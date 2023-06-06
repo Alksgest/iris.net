@@ -1,0 +1,2 @@
+const a = rand(0, 20);
+print(a);
