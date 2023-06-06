@@ -6,7 +6,13 @@ namespace SharpScript.Lexer;
 
 public class Evaluator
 {
-    private readonly Dictionary<string, object?> _environment = new();
+    private readonly Dictionary<string, object?> _environment;
+
+    public Evaluator()
+    {
+        _environment = new();
+        SetupEnvironment();
+    }
 
     public object? Evaluate(Node node)
     {
@@ -17,11 +23,12 @@ public class Evaluator
             VariableAssignment variableAssignment => EvaluateVariableAssignment(variableAssignment),
             NumberExpression numberExpression => EvaluateNumberExpression(numberExpression),
             VariableExpression variableExpression => EvaluateVariableExpression(variableExpression),
+            FunctionCall functionCall => EvaluateFunctionCall(functionCall),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
     }
-    
+
     private object? EvaluateProgram(RootNode program)
     {
         object? result = null;
@@ -29,17 +36,31 @@ public class Evaluator
         {
             result = Evaluate(statement);
         }
-        
+
         return result;
     }
-    
+
+    private object? EvaluateFunctionCall(FunctionCall functionCall)
+    {
+        var funcName = functionCall.Name;
+
+
+        ThrowHelper.ThrowIfNotCallable(_environment, funcName);
+
+        var del = _environment[funcName] as Delegate;
+
+        var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>());
+
+        return del!.DynamicInvoke(new object[] { args });
+    }
+
     private object? EvaluateVariableAssignment(VariableAssignment variableAssignment)
     {
         var leftName = variableAssignment.Name;
         var rightName = variableAssignment.Value.Value;
 
-        ThrowIfVariableNotDeclared(leftName);
-        ThrowIfVariableNotDeclared(rightName);
+        ThrowHelper.ThrowIfVariableNotDeclared(_environment, leftName);
+        ThrowHelper.ThrowIfVariableNotDeclared(_environment, rightName);
 
         var value = Evaluate(variableAssignment.Value);
         _environment[variableAssignment.Name] = value;
@@ -53,21 +74,28 @@ public class Evaluator
         return value;
     }
 
-    private object? EvaluateNumberExpression(NodeExpression numberExpression)
+    private static object? EvaluateNumberExpression(NodeExpression numberExpression)
     {
         return decimal.Parse(numberExpression.Value);
     }
-    
+
     private object? EvaluateVariableExpression(NodeExpression variableExpression)
     {
         return _environment[variableExpression.Value];
     }
 
-    private void ThrowIfVariableNotDeclared(string name)
+    private object?[] EvaluateCallArguments(IEnumerable<NodeExpression> args)
     {
-        if (!_environment.ContainsKey(name))
-        {
-            throw new Exception($"Variable {name} is not declared");
-        }
+        return args.Select(Evaluate).ToArray();
+    }
+
+    private void SetupEnvironment()
+    {
+        _environment["print"] = Print;
+    }
+
+    private static void Print(params object[] args)
+    {
+        Console.WriteLine(string.Join(" ", args));
     }
 }
