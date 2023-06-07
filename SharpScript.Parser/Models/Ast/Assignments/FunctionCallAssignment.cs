@@ -1,4 +1,4 @@
-namespace SharpScript.Lexer.Models.Ast.Assignments;
+namespace SharpScript.Parser.Models.Ast.Assignments;
 
 public class FunctionCallAssignment : Node
 {

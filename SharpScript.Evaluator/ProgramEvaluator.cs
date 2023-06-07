@@ -1,16 +1,16 @@
-using SharpScript.Lexer.Helpers;
-using SharpScript.Lexer.Models.Ast;
-using SharpScript.Lexer.Models.Ast.Assignments;
-using SharpScript.Lexer.Models.Ast.Declarations;
-using SharpScript.Lexer.Models.Ast.Expressions;
+using SharpScript.Evaluator.Helpers;
+using SharpScript.Parser.Models.Ast;
+using SharpScript.Parser.Models.Ast.Assignments;
+using SharpScript.Parser.Models.Ast.Declarations;
+using SharpScript.Parser.Models.Ast.Expressions;
 
-namespace SharpScript.Lexer;
+namespace SharpScript.Evaluator;
 
-public class Evaluator
+public class ProgramEvaluator
 {
     private readonly Dictionary<string, object?> _environment;
 
-    public Evaluator()
+    public ProgramEvaluator()
     {
         _environment = new();
         SetupEnvironment();
@@ -28,6 +28,7 @@ public class Evaluator
             VariableExpression variableExpression => EvaluateVariableExpression(variableExpression),
             FunctionCallExpression functionCallExpression => EvaluateFunctionCallExpression(functionCallExpression),
             FunctionCall functionCall => EvaluateFunctionCall(functionCall),
+            BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
@@ -44,10 +45,27 @@ public class Evaluator
         return result;
     }
 
+    private object? EvaluateBinaryExpression(BinaryExpression binaryExpression)
+    {
+        var left = Evaluate(binaryExpression.Left);
+        var right = Evaluate(binaryExpression.Right);
+
+        var result = binaryExpression.Operator switch
+        {
+            "+" => MathHelper.Sum(left, right),
+            "-" => MathHelper.Subtract(left, right),
+            "*" => MathHelper.Multiply(left, right),
+            "/" => MathHelper.Divide(left, right),
+            _ => throw new ArgumentException("Not accepted operand")
+        };
+
+        return result;
+    }
+
     private object? EvaluateFunctionCall(FunctionCall functionCall)
     {
         var funcName = functionCall.Name;
-        
+
         ThrowHelper.ThrowIfNotCallable(_environment, funcName);
 
         var del = _environment[funcName] as Delegate;
@@ -65,10 +83,8 @@ public class Evaluator
     private object? EvaluateVariableAssignment(VariableAssignment variableAssignment)
     {
         var leftName = variableAssignment.Name;
-        var rightName = variableAssignment.Value.Value;
 
         ThrowHelper.ThrowIfVariableNotDeclared(_environment, leftName);
-        ThrowHelper.ThrowIfVariableNotDeclared(_environment, rightName);
 
         var value = Evaluate(variableAssignment.Value);
         _environment[variableAssignment.Name] = value;
@@ -78,24 +94,25 @@ public class Evaluator
     private object? EvaluateVariableDeclaration(VariableDeclaration variableDeclaration)
     {
         ThrowHelper.ThrowIfVariableDeclared(_environment, variableDeclaration.Name);
-        
+
         var value = Evaluate(variableDeclaration.Value!);
         _environment[variableDeclaration.Name] = value;
         return value;
     }
 
-    private static object? EvaluateNumberExpression(NodeExpression numberExpression)
+    private static object? EvaluateNumberExpression(PrimaryExpression numberExpression)
     {
         return decimal.Parse(numberExpression.Value);
     }
 
-    private static object? EvaluateStringExpression(NodeExpression stringExpression)
+    private static object? EvaluateStringExpression(PrimaryExpression stringExpression)
     {
         return stringExpression.Value[1..^1];
     }
 
-    private object? EvaluateVariableExpression(NodeExpression variableExpression)
+    private object? EvaluateVariableExpression(PrimaryExpression variableExpression)
     {
+        ThrowHelper.ThrowIfVariableNotDeclared(_environment, variableExpression.Value);
         return _environment[variableExpression.Value];
     }
 

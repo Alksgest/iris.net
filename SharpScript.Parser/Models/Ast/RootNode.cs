@@ -1,4 +1,4 @@
-namespace SharpScript.Lexer.Models.Ast;
+namespace SharpScript.Parser.Models.Ast;
 
 public class RootNode : Node
 {

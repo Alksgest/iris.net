@@ -1,18 +1,19 @@
-using SharpScript.Lexer.Models.Ast;
-using SharpScript.Lexer.Models.Ast.Assignments;
-using SharpScript.Lexer.Models.Ast.Declarations;
-using SharpScript.Lexer.Models.Ast.Expressions;
+using SharpScript.Lexer.Models;
+using SharpScript.Parser.Models.Ast;
+using SharpScript.Parser.Models.Ast.Assignments;
+using SharpScript.Parser.Models.Ast.Declarations;
+using SharpScript.Parser.Models.Ast.Expressions;
 
-namespace SharpScript.Lexer;
+namespace SharpScript.Parser;
 
-public class Parser
+public class TokensParser
 {
     private readonly List<Token> _tokens;
     private int _currentTokenIndex = 0;
 
     private readonly List<Node> _statements;
 
-    public Parser(List<Token> tokens)
+    public TokensParser(List<Token> tokens)
     {
         _statements = new List<Node>();
         _tokens = tokens;
@@ -81,7 +82,7 @@ public class Parser
     private FunctionCall ParseFunctionCall(string value)
     {
         _ = Expect(TokenType.Punctuation, "(");
-        
+
         var nodes = new List<NodeExpression>();
         while (!Match(TokenType.Punctuation, ")"))
         {
@@ -90,18 +91,19 @@ public class Parser
             {
                 _ = Expect(TokenType.Punctuation, ",");
             }
+
             nodes.Add(expression);
         }
-        
+
         _ = Expect(TokenType.Punctuation, ")");
-        
+
         return new FunctionCall(value, nodes);
     }
 
     private VariableAssignment ParseVariableAssignment(Token nameToken)
     {
         _ = Expect(TokenType.Operator, "=");
-        var value = ParseExpression();
+        var value = ParseExpression() ;
         return new VariableAssignment(nameToken.Value, value);
     }
 
@@ -126,15 +128,35 @@ public class Parser
 
         return new VariableDeclaration(nameToken.Value, value);
     }
-
+    
     private NodeExpression ParseExpression()
     {
-        // For now, we'll just handle numbers
+        var expr = ParsePrimary();
+
+        while (true)
+        {
+            if (Match(TokenType.Operator))
+            {
+                var op = Expect(TokenType.Operator).Value;
+                var right = ParsePrimary();
+                expr = new BinaryExpression(expr, op, right);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expr;
+    }
+    
+    private NodeExpression ParsePrimary()
+    {
         if (Match(TokenType.NumberValue))
         {
             return new NumberExpression(Expect(TokenType.NumberValue).Value);
         }
-        
+
         if (Match(TokenType.StringValue))
         {
             return new StringExpression(Expect(TokenType.StringValue).Value);
@@ -142,7 +164,6 @@ public class Parser
 
         if (Match(TokenType.Identifier))
         {
-            // understand, that this is a call
             if (!MatchNext(TokenType.Punctuation, "("))
             {
                 return new VariableExpression(Expect(TokenType.Identifier).Value);
@@ -150,13 +171,13 @@ public class Parser
 
             var token = Expect(TokenType.Identifier).Value;
             var functionCall = ParseFunctionCall(token);
-                
+
             return new FunctionCallExpression(token, functionCall);
         }
 
-        throw new Exception("Expected a number");
+        throw new Exception("Unexpected expression");
     }
-
+    
     private bool Match(TokenType type, string? value = null)
     {
         if (_currentTokenIndex >= _tokens.Count) return false;
@@ -164,7 +185,7 @@ public class Parser
         var token = _tokens[_currentTokenIndex];
         return token.Type == type && (value == null || token.Value == value);
     }
-    
+
     private bool MatchNext(TokenType type, string? value = null)
     {
         if (_currentTokenIndex >= _tokens.Count) return false;

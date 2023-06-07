@@ -1,6 +1,8 @@
-namespace SharpScript.Lexer.Models.Ast.Expressions;
+using SharpScript.Lexer.Models;
 
-public class FunctionCallExpression : NodeExpression
+namespace SharpScript.Parser.Models.Ast.Expressions;
+
+public class FunctionCallExpression : PrimaryExpression
 {
     public FunctionCall FunctionCall { get; }
 

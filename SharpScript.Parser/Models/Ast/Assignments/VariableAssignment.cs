@@ -1,6 +1,6 @@
-using SharpScript.Lexer.Models.Ast.Expressions;
+using SharpScript.Parser.Models.Ast.Expressions;
 
-namespace SharpScript.Lexer.Models.Ast.Assignments;
+namespace SharpScript.Parser.Models.Ast.Assignments;
 
 public class VariableAssignment : Node
 {

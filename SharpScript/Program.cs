@@ -1,4 +1,6 @@
-﻿using SharpScript.Lexer;
+﻿using SharpScript.Evaluator;
+using SharpScript.Lexer;
+using SharpScript.Parser;
 
 namespace SharpScript;
 
@@ -30,12 +32,12 @@ public static class Program
             Console.WriteLine($"{token.Type.ToString()}: {token.Value}");
         }
 
-        var parser = new Parser(tokens);
+        var parser = new TokensParser(tokens);
         var tree = parser.ParseTokens();
 
         Console.WriteLine(tree);
 
-        var evaluator = new Evaluator();
+        var evaluator = new ProgramEvaluator();
         evaluator.Evaluate(tree);
     }
 }

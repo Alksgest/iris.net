@@ -1,32 +1,7 @@
 ﻿using System.Text;
+using SharpScript.Lexer.Models;
 
 namespace SharpScript.Lexer;
-
-public enum TokenType
-{
-    Identifier = 0,
-    NumberValue,
-    StringValue,
-    Operator,
-    Keyword,
-    Punctuation
-}
-
-public enum TokenizerState
-{
-    Start = 0,
-    Word,
-    Number,
-    String,
-    Operator,
-    Punctuation
-}
-
-public class Token
-{
-    public TokenType Type { get; set; }
-    public string Value { get; set; } = "";
-}
 
 // TODO: handle math operators
 // TODO: add if else operators expression
@@ -37,7 +12,7 @@ public class Token
 // TODO: extend evaluations metadata
 public class Tokenizer
 {
-    private readonly List<string> _operators = new() { "=" };
+    private readonly List<string> _operators = new() { "=", "+", "-", "*", "/" };
     private readonly List<string> _punctuations = new() { ";", "(", ")", "," };
     private readonly List<string> _keyWords = new() { "const", "let" }; // remove const, add mut
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };

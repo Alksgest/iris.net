@@ -1,4 +1,4 @@
-namespace SharpScript.Lexer.Helpers;
+namespace SharpScript.Evaluator.Helpers;
 
 public static class ThrowHelper
 {

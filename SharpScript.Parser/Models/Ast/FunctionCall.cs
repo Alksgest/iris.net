@@ -1,6 +1,6 @@
-using SharpScript.Lexer.Models.Ast.Expressions;
+using SharpScript.Parser.Models.Ast.Expressions;
 
-namespace SharpScript.Lexer.Models.Ast;
+namespace SharpScript.Parser.Models.Ast;
 
 public class FunctionCall : Node
 {

@@ -1,4 +1,4 @@
-namespace SharpScript.Lexer.Models.Ast.Declarations;
+namespace SharpScript.Parser.Models.Ast.Declarations;
 
 public class VariableDeclaration : Node
 {
