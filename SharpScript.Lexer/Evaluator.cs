@@ -24,6 +24,7 @@ public class Evaluator
             VariableDeclaration variableDeclaration => EvaluateVariableDeclaration(variableDeclaration),
             VariableAssignment variableAssignment => EvaluateVariableAssignment(variableAssignment),
             NumberExpression numberExpression => EvaluateNumberExpression(numberExpression),
+            StringExpression stringExpression => EvaluateStringExpression(stringExpression),
             VariableExpression variableExpression => EvaluateVariableExpression(variableExpression),
             FunctionCallExpression functionCallExpression => EvaluateFunctionCallExpression(functionCallExpression),
             FunctionCall functionCall => EvaluateFunctionCall(functionCall),
@@ -31,7 +32,7 @@ public class Evaluator
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
     }
-    
+
     private object? EvaluateProgram(RootNode program)
     {
         object? result = null;
@@ -56,7 +57,7 @@ public class Evaluator
 
         return del!.DynamicInvoke(new object[] { args });
     }
-    
+
     private object? EvaluateFunctionCallExpression(FunctionCallExpression functionCallExpression)
     {
         return EvaluateFunctionCall(functionCallExpression.FunctionCall);
@@ -87,6 +88,11 @@ public class Evaluator
         return decimal.Parse(numberExpression.Value);
     }
 
+    private static object? EvaluateStringExpression(NodeExpression stringExpression)
+    {
+        return stringExpression.Value[1..^1];
+    }
+
     private object? EvaluateVariableExpression(NodeExpression variableExpression)
     {
         return _environment[variableExpression.Value];
@@ -109,11 +115,12 @@ public class Evaluator
     }
 
     private static readonly Random Random = new();
+
     private static decimal GetRandomNumber(object[] args)
     {
         var l = (decimal)args[0];
         var r = (decimal)args[1];
-        
+
         var ll = (int)l;
         var rr = (int)r;
 

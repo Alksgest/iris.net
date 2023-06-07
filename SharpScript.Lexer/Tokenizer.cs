@@ -36,6 +36,7 @@ public enum TokenType
 {
     Identifier = 0,
     NumberValue,
+    StringValue,
     Operator,
     Keyword,
     Punctuation
@@ -46,6 +47,7 @@ public enum TokenizerState
     Start = 0,
     Word,
     Number,
+    String,
     Operator,
     Punctuation
 }
@@ -60,8 +62,9 @@ public class Tokenizer
 {
     private readonly List<string> _operators = new() { "=" };
     private readonly List<string> _punctuations = new() { ";", "(", ")", "," };
-    private readonly List<string> _keyWords = new() { "const", "let" };
+    private readonly List<string> _keyWords = new() { "const", "let" }; // remove const, add mut
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
+    private readonly List<char> _stringLiteralIdentifiers = new() { '\"' };
 
     private TokenizerState _tokenizerState = TokenizerState.Start;
 
@@ -104,6 +107,9 @@ public class Tokenizer
                 case TokenizerState.Punctuation:
                     HandlePunctuation(c, tokenBuilder, tokens);
                     break;
+                case TokenizerState.String:
+                    HandleStringLiteral(c, tokenBuilder, tokens);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -141,9 +147,28 @@ public class Tokenizer
         {
             _tokenizerState = TokenizerState.Punctuation;
             tokenBuilder.Append(c);
+        } else if (_stringLiteralIdentifiers.Contains(c))
+        {
+            _tokenizerState = TokenizerState.String;
+            tokenBuilder.Append(c);
         }
         else if (_emptySymbols.Contains(c))
         {
+        }
+    }
+
+    private void HandleStringLiteral(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    {
+        var startSymbol = tokenBuilder[0];
+
+        if (c == startSymbol)
+        {
+            tokenBuilder.Append(c);
+            FinalizeToken(tokenBuilder, tokens);
+        }
+        else
+        {
+            tokenBuilder.Append(c);
         }
     }
 
@@ -232,6 +257,7 @@ public class Tokenizer
             _ when _operators.Contains(token) => TokenType.Operator,
             _ when _punctuations.Contains(token) => TokenType.Punctuation,
             _ when _keyWords.Contains(token) => TokenType.Keyword,
+            _ when _stringLiteralIdentifiers.Contains(token[0]) => TokenType.StringValue,
             _ => TokenType.Identifier
         };
 

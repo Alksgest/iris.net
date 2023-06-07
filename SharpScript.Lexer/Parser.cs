@@ -134,6 +134,11 @@ public class Parser
         {
             return new NumberExpression(Expect(TokenType.NumberValue).Value);
         }
+        
+        if (Match(TokenType.StringValue))
+        {
+            return new StringExpression(Expect(TokenType.StringValue).Value);
+        }
 
         if (Match(TokenType.Identifier))
         {

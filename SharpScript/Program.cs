@@ -11,28 +11,29 @@ public static class Program
             Console.WriteLine(arg);
         }
 
-        if (args.Length == 0)
-        {
-            Console.WriteLine("No file to execute");
-        }
+        // if (args.Length == 0)
+        // {
+        //     Console.WriteLine("No file to execute");
+        //     return;
+        // }
 
-        var fileName = args[0];
+        var fileName = "main.shs" ?? args[0];
 
         var tokenizer = new Tokenizer();
 
         var fileContent = File.ReadAllText(fileName);
 
-        var tokens = tokenizer.Process(fileContent); // const a = 5; let b; b = a; a = 3; // a(1, 2, 3); 
+        var tokens = tokenizer.Process(fileContent);
 
-        // foreach (var token in tokens)
-        // {
-        //     Console.WriteLine($"{token.Type.ToString()}: {token.Value}");
-        // }
+        foreach (var token in tokens)
+        {
+            Console.WriteLine($"{token.Type.ToString()}: {token.Value}");
+        }
 
         var parser = new Parser(tokens);
         var tree = parser.ParseTokens();
 
-        // Console.WriteLine(tree);
+        Console.WriteLine(tree);
 
         var evaluator = new Evaluator();
         evaluator.Evaluate(tree);

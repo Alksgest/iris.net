@@ -7,3 +7,10 @@ print(a, b, 3);
 
 const a = rand(0, 20);
 print(a);
+
+const a = rand(0, 20);
+const b = a;
+let c = 3;
+print(b);
+print(rand(0, 20));
+print(1, c, 3);

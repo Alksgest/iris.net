@@ -1,2 +1,3 @@
-const a = rand(0, 20);
+let a = "text";
 print(a);
+print("This is a string!");
