@@ -14,3 +14,7 @@ let c = 3;
 print(b);
 print(rand(0, 20));
 print(1, c, 3);
+
+let a = "text";
+print(a);
+print("This is a string!");

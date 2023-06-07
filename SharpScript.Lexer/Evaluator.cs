@@ -47,8 +47,7 @@ public class Evaluator
     private object? EvaluateFunctionCall(FunctionCall functionCall)
     {
         var funcName = functionCall.Name;
-
-
+        
         ThrowHelper.ThrowIfNotCallable(_environment, funcName);
 
         var del = _environment[funcName] as Delegate;
@@ -78,6 +77,8 @@ public class Evaluator
 
     private object? EvaluateVariableDeclaration(VariableDeclaration variableDeclaration)
     {
+        ThrowHelper.ThrowIfVariableDeclared(_environment, variableDeclaration.Name);
+        
         var value = Evaluate(variableDeclaration.Value!);
         _environment[variableDeclaration.Name] = value;
         return value;

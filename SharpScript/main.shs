@@ -1,3 +1,1 @@
-let a = "text";
-print(a);
-print("This is a string!");
+const a = 5 + 3;

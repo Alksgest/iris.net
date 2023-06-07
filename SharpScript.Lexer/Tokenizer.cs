@@ -1,36 +1,6 @@
-﻿// ReSharper disable InconsistentNaming
-
-using System.Text;
+﻿using System.Text;
 
 namespace SharpScript.Lexer;
-
-//
-public static class Keyword
-{
-    public const string @if = "if";
-    public const string @else = "else";
-    public const string @for = "for";
-    public const string @while = "while";
-    public const string @const = "const";
-    public const string @mut = "mut";
-}
-
-public static class Operators
-{
-    public const string plus = "+";
-    public const string minus = "-";
-    public const string divide = "/";
-    public const string multiply = "*";
-    public const string equal = "=";
-}
-
-public static class Punctuation
-{
-    private const string leftParenthesis = "(";
-    private const string rightParenthesis = ")";
-    private const string leftCurlyBracket = ")";
-    private const string rightCurlyBracket = ")";
-}
 
 public enum TokenType
 {
@@ -58,6 +28,13 @@ public class Token
     public string Value { get; set; } = "";
 }
 
+// TODO: handle math operators
+// TODO: add if else operators expression
+// TODO: add while loop
+// TODO: handle function creation
+// TODO: handle scope creation
+// TODO: handle immutability (let mut)
+// TODO: extend evaluations metadata
 public class Tokenizer
 {
     private readonly List<string> _operators = new() { "=" };
@@ -253,7 +230,7 @@ public class Tokenizer
     {
         var type = token switch
         {
-            _ when decimal.TryParse(token, out var _) => TokenType.NumberValue,
+            _ when decimal.TryParse(token, out _) => TokenType.NumberValue,
             _ when _operators.Contains(token) => TokenType.Operator,
             _ when _punctuations.Contains(token) => TokenType.Punctuation,
             _ when _keyWords.Contains(token) => TokenType.Keyword,
