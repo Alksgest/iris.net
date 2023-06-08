@@ -29,15 +29,27 @@ public class ProgramEvaluator
             FunctionCallExpression functionCallExpression => EvaluateFunctionCallExpression(functionCallExpression),
             FunctionCall functionCall => EvaluateFunctionCall(functionCall),
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression),
+            ScopedNode scopedNode => EvaluateScopedNode(scopedNode),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
     }
-
+    
     private object? EvaluateProgram(RootNode program)
     {
         object? result = null;
         foreach (var statement in program.Statements)
+        {
+            result = Evaluate(statement);
+        }
+
+        return result;
+    }
+    
+    private object? EvaluateScopedNode(ScopedNode scopedNode)
+    {
+        object? result = null;
+        foreach (var statement in scopedNode.Statements)
         {
             result = Evaluate(statement);
         }
