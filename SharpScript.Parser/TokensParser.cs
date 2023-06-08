@@ -131,23 +131,54 @@ public class TokensParser
     
     private NodeExpression ParseExpression()
     {
-        var expr = ParsePrimary();
+        return ParseBinaryExpression(0);
+    }
+    
+    private NodeExpression ParseBinaryExpression(int minPrecedence)
+    {
+        // 5 + 3 * 7
+        // 3 * 7
+        var expr = ParseUnaryExpression(); //5 // 3
 
         while (true)
         {
-            if (Match(TokenType.Operator))
-            {
-                var op = Expect(TokenType.Operator).Value;
-                var right = ParsePrimary();
-                expr = new BinaryExpression(expr, op, right);
-            }
-            else
+            var op = _tokens[_currentTokenIndex]; // +
+            if (Match(TokenType.Punctuation, ";"))
             {
                 break;
             }
+            
+            if (Match(TokenType.Punctuation, ")"))
+            {
+                break;
+            }
+
+            var precedence = GetPrecedence(op); // <--1
+            if (precedence < minPrecedence) // 1 < 0 false
+            {
+                break;
+            }
+
+            ++_currentTokenIndex;
+
+            var right = ParseBinaryExpression(precedence + 1);
+            expr = new BinaryExpression(expr, op.Value, right);
         }
 
         return expr;
+    }
+    
+    private NodeExpression ParseUnaryExpression()
+    {
+        if (Match(TokenType.Punctuation, "("))
+        {
+            _ = Expect(TokenType.Punctuation, "(");
+            var expr = ParseExpression();
+            Expect(TokenType.Punctuation, ")");  // Consume the closing parenthesis
+            return expr;
+        }
+
+        return ParsePrimary();
     }
     
     private NodeExpression ParsePrimary()
@@ -176,6 +207,21 @@ public class TokensParser
         }
 
         throw new Exception("Unexpected expression");
+    }
+    
+    private static int GetPrecedence(Token op)
+    {
+        switch (op.Value)
+        {
+            case "*":
+            case "/":
+                return 2;
+            case "+":
+            case "-":
+                return 1;
+            default:
+                return 0;
+        }
     }
     
     private bool Match(TokenType type, string? value = null)

@@ -18,3 +18,10 @@ print(1, c, 3);
 let a = "text";
 print(a);
 print("This is a string!");
+
+let a;
+a = 5 + 3 * 7;
+
+let a = ((5 + 3) * 7) / 2;
+
+print(((5 + 3) * 7) / 2);

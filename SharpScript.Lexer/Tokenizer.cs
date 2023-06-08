@@ -12,6 +12,8 @@ namespace SharpScript.Lexer;
 // TODO: extend evaluations metadata
 public class Tokenizer
 {
+    private List<Token> _tokens = new ();
+    
     private readonly List<string> _operators = new() { "=", "+", "-", "*", "/" };
     private readonly List<string> _punctuations = new() { ";", "(", ")", "," };
     private readonly List<string> _keyWords = new() { "const", "let" }; // remove const, add mut
@@ -24,7 +26,7 @@ public class Tokenizer
     public List<Token> Process(string input)
     {
         var tokenBuilder = new StringBuilder();
-        var tokens = new List<Token>();
+        _tokens = new List<Token>();
 
         foreach (var c in input)
         {
@@ -32,7 +34,7 @@ public class Tokenizer
             {
                 if (tokenBuilder.Length > 0)
                 {
-                    tokens.Add(ParseToken(tokenBuilder.ToString()));
+                    _tokens.Add(ParseToken(tokenBuilder.ToString()));
                 }
 
                 tokenBuilder.Clear();
@@ -48,19 +50,19 @@ public class Tokenizer
                     HandleStart(c, tokenBuilder);
                     break;
                 case TokenizerState.Word:
-                    HandleWord(c, tokenBuilder, tokens);
+                    HandleWord(c, tokenBuilder);
                     break;
                 case TokenizerState.Number:
-                    HandleNumber(c, tokenBuilder, tokens);
+                    HandleNumber(c, tokenBuilder);
                     break;
                 case TokenizerState.Operator:
-                    HandleOperator(c, tokenBuilder, tokens);
+                    HandleOperator(c, tokenBuilder);
                     break;
                 case TokenizerState.Punctuation:
-                    HandlePunctuation(c, tokenBuilder, tokens);
+                    HandlePunctuation(c, tokenBuilder);
                     break;
                 case TokenizerState.String:
-                    HandleStringLiteral(c, tokenBuilder, tokens);
+                    HandleStringLiteral(c, tokenBuilder);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -69,13 +71,13 @@ public class Tokenizer
 
         if (tokenBuilder.Length == 0)
         {
-            return tokens;
+            return _tokens;
         }
 
-        tokens.Add(ParseToken(tokenBuilder.ToString()));
+        _tokens.Add(ParseToken(tokenBuilder.ToString()));
         tokenBuilder.Clear();
 
-        return tokens;
+        return _tokens;
     }
 
     private void HandleStart(char c, StringBuilder tokenBuilder)
@@ -99,6 +101,7 @@ public class Tokenizer
         {
             _tokenizerState = TokenizerState.Punctuation;
             tokenBuilder.Append(c);
+            FinalizeToken(tokenBuilder);
         } else if (_stringLiteralIdentifiers.Contains(c))
         {
             _tokenizerState = TokenizerState.String;
@@ -109,14 +112,14 @@ public class Tokenizer
         }
     }
 
-    private void HandleStringLiteral(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    private void HandleStringLiteral(char c, StringBuilder tokenBuilder)
     {
         var startSymbol = tokenBuilder[0];
 
         if (c == startSymbol)
         {
             tokenBuilder.Append(c);
-            FinalizeToken(tokenBuilder, tokens);
+            FinalizeToken(tokenBuilder);
         }
         else
         {
@@ -124,19 +127,20 @@ public class Tokenizer
         }
     }
 
-    private void HandlePunctuation(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    private void HandlePunctuation(char c, StringBuilder tokenBuilder)
     {
         if (_punctuations.Contains($"{c}"))
         {
-            tokenBuilder.Append(c);
+            // tokenBuilder.Append(c);
+            FinalizeToken(tokenBuilder);
         }
         else if (_emptySymbols.Contains(c))
         {
-            FinalizeToken(tokenBuilder, tokens);
+            FinalizeToken(tokenBuilder);
         }
     }
 
-    private void HandleOperator(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    private void HandleOperator(char c, StringBuilder tokenBuilder)
     {
         var intermediateToken = tokenBuilder.ToString();
         if (_operators.Contains($"{intermediateToken}{c}"))
@@ -145,11 +149,11 @@ public class Tokenizer
         }
         else if (_emptySymbols.Contains(c))
         {
-            FinalizeToken(tokenBuilder, tokens);
+            FinalizeToken(tokenBuilder);
         }
     }
 
-    private void HandleNumber(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    private void HandleNumber(char c, StringBuilder tokenBuilder)
     {
         if (char.IsNumber(c))
         {
@@ -157,15 +161,15 @@ public class Tokenizer
         }
         else if (_punctuations.Contains($"{c}"))
         {
-            HandlePunctuationStart(c, tokenBuilder, tokens);
+            HandlePunctuationStart(c, tokenBuilder);
         }
         else if (_emptySymbols.Contains(c))
         {
-            FinalizeToken(tokenBuilder, tokens);
+            FinalizeToken(tokenBuilder);
         }
     }
 
-    private void HandleWord(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    private void HandleWord(char c, StringBuilder tokenBuilder)
     {
         //TODO: It is possible to have word with integer number at the end 
         if (char.IsAsciiLetter(c))
@@ -175,28 +179,28 @@ public class Tokenizer
         }
         else if (_punctuations.Contains($"{c}"))
         {
-            HandlePunctuationStart(c, tokenBuilder, tokens);
+            HandlePunctuationStart(c, tokenBuilder);
         }
         else if (_emptySymbols.Contains(c))
         {
-            FinalizeToken(tokenBuilder, tokens);
+            FinalizeToken(tokenBuilder);
         }
     }
 
-    private void HandlePunctuationStart(char c, StringBuilder tokenBuilder, ICollection<Token> tokens)
+    private void HandlePunctuationStart(char c, StringBuilder tokenBuilder)
     {
         var token = tokenBuilder.ToString();
-        tokens.Add(ParseToken(token));
+        _tokens.Add(ParseToken(token));
         tokenBuilder.Clear();
         _tokenizerState = TokenizerState.Start;
-        tokens.Add(ParseToken($"{c}"));
+        _tokens.Add(ParseToken($"{c}"));
     }
 
-    private void FinalizeToken(StringBuilder tokenBuilder, ICollection<Token> tokens)
+    private void FinalizeToken(StringBuilder tokenBuilder)
     {
         _tokenizerState = TokenizerState.Start;
         var token = tokenBuilder.ToString();
-        tokens.Add(ParseToken(token));
+        _tokens.Add(ParseToken(token));
 
         tokenBuilder.Clear();
     }
