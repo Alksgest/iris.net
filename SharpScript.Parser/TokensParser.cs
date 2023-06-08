@@ -167,6 +167,11 @@ public class TokensParser
             {
                 break;
             }
+            
+            if (Match(TokenType.Punctuation, ","))
+            {
+                break;
+            }
 
             if (Match(TokenType.Punctuation, ")"))
             {
