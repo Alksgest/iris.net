@@ -3,20 +3,20 @@ using SharpScript.Lexer.Models;
 
 namespace SharpScript.Lexer;
 
-// TODO: handle math operators
+// TODO: handle math operators +-
 // TODO: add if else operators expression
 // TODO: add while loop
+// TODO: extend evaluations metadata
 // TODO: handle function creation
 // TODO: handle scope creation
 // TODO: handle immutability (let mut)
-// TODO: extend evaluations metadata
 public class Tokenizer
 {
-    private List<Token> _tokens = new ();
-    
+    private List<Token> _tokens = new();
+
     private readonly List<string> _operators = new() { "=", "+", "-", "*", "/" };
-    private readonly List<string> _punctuations = new() { ";", "(", ")", "," };
-    private readonly List<string> _keyWords = new() { "const", "let" }; // remove const, add mut
+    private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}" };
+    private readonly List<string> _keyWords = new() { "const", "let", "if", "else" }; // remove const, add mut
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
     private readonly List<char> _stringLiteralIdentifiers = new() { '\"' };
 
@@ -102,7 +102,8 @@ public class Tokenizer
             _tokenizerState = TokenizerState.Punctuation;
             tokenBuilder.Append(c);
             FinalizeToken(tokenBuilder);
-        } else if (_stringLiteralIdentifiers.Contains(c))
+        }
+        else if (_stringLiteralIdentifiers.Contains(c))
         {
             _tokenizerState = TokenizerState.String;
             tokenBuilder.Append(c);

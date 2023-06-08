@@ -59,7 +59,29 @@ public class TokensParser
             return node;
         }
 
+        if (Match(TokenType.Punctuation, "{"))
+        {
+            var node = ParseScopedNode();
+            _ = Expect(TokenType.Punctuation, "}");
+            return node;
+        }
+
         throw new Exception("Expected a statement");
+    }
+
+    private ScopedNode ParseScopedNode()
+    {
+        _ = Expect(TokenType.Punctuation, "{");
+        
+        var scopedNode = new ScopedNode();
+
+        while (!Match(TokenType.Punctuation, "}"))
+        {
+            var node = ParseStatement();
+            scopedNode.Statements.Add(node);
+        }
+
+        return scopedNode;
     }
 
     private Node ParseIdentifierExpression()
@@ -103,7 +125,7 @@ public class TokensParser
     private VariableAssignment ParseVariableAssignment(Token nameToken)
     {
         _ = Expect(TokenType.Operator, "=");
-        var value = ParseExpression() ;
+        var value = ParseExpression();
         return new VariableAssignment(nameToken.Value, value);
     }
 
@@ -128,33 +150,31 @@ public class TokensParser
 
         return new VariableDeclaration(nameToken.Value, value);
     }
-    
+
     private NodeExpression ParseExpression()
     {
         return ParseBinaryExpression(0);
     }
-    
+
     private NodeExpression ParseBinaryExpression(int minPrecedence)
     {
-        // 5 + 3 * 7
-        // 3 * 7
-        var expr = ParseUnaryExpression(); //5 // 3
+        var expr = ParseUnaryExpression();
 
         while (true)
         {
-            var op = _tokens[_currentTokenIndex]; // +
+            var op = _tokens[_currentTokenIndex];
             if (Match(TokenType.Punctuation, ";"))
             {
                 break;
             }
-            
+
             if (Match(TokenType.Punctuation, ")"))
             {
                 break;
             }
 
-            var precedence = GetPrecedence(op); // <--1
-            if (precedence < minPrecedence) // 1 < 0 false
+            var precedence = GetPrecedence(op);
+            if (precedence < minPrecedence)
             {
                 break;
             }
@@ -167,20 +187,20 @@ public class TokensParser
 
         return expr;
     }
-    
+
     private NodeExpression ParseUnaryExpression()
     {
         if (Match(TokenType.Punctuation, "("))
         {
             _ = Expect(TokenType.Punctuation, "(");
             var expr = ParseExpression();
-            Expect(TokenType.Punctuation, ")");  // Consume the closing parenthesis
+            Expect(TokenType.Punctuation, ")"); // Consume the closing parenthesis
             return expr;
         }
 
         return ParsePrimary();
     }
-    
+
     private NodeExpression ParsePrimary()
     {
         if (Match(TokenType.NumberValue))
@@ -208,7 +228,7 @@ public class TokensParser
 
         throw new Exception("Unexpected expression");
     }
-    
+
     private static int GetPrecedence(Token op)
     {
         switch (op.Value)
@@ -223,7 +243,7 @@ public class TokensParser
                 return 0;
         }
     }
-    
+
     private bool Match(TokenType type, string? value = null)
     {
         if (_currentTokenIndex >= _tokens.Count) return false;
