@@ -42,3 +42,36 @@ print(((5 + 3) * 7) / 2);
         print(b);
     }
 }
+
+
+
+
+
+
+
+const a = 5; 
+const b = a;
+let c; 
+c = a;
+print(a, b, c);
+
+c = rand(a, 30);
+print(c);
+
+let d = "text";
+print(d);
+print("This is a string!");
+print(((5 + 3) * 7) / 2);
+
+{
+    let e = 5;
+    print(e);
+}
+
+let a = 5;
+let b = 3;
+
+if a + b {
+    const c = 10;
+    print(c);
+}

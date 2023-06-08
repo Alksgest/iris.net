@@ -3,13 +3,13 @@ namespace SharpScript.Parser.Models.Ast.Expressions;
 public class ConditionalExpression : NodeExpression
 {
     public NodeExpression Condition { get; set; }
-    public NodeExpression True { get; set; }
-    public NodeExpression? False { get; set; }
+    public Node True { get; set; }
+    public Node? False { get; set; }
 
     public ConditionalExpression(
-        string name, NodeExpression condition,
-        NodeExpression @true,
-        NodeExpression? @false) : base(name)
+        NodeExpression condition,
+        Node @true,
+        Node? @false = null) : base(nameof(ConditionalExpression))
     {
         Condition = condition;
         True = @true;

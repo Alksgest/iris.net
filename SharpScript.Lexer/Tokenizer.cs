@@ -5,10 +5,12 @@ namespace SharpScript.Lexer;
 
 // TODO: handle math operators +-
 // TODO: add if else operators expression
+// TODO: add true, false, null literals
+// TODO: make value generic instead of object
 // TODO: add while loop
 // TODO: extend evaluations metadata
 // TODO: handle function creation
-// TODO: handle scope creation
+// TODO: handle scope creation +--
 // TODO: handle immutability (let mut)
 public class Tokenizer
 {

@@ -52,6 +52,13 @@ public class TokensParser
             return node;
         }
 
+        if (Match(TokenType.Keyword, "if"))
+        {
+            ++_currentTokenIndex; // skip if key word
+            var node = ParseConditionalExpression();
+            return node;
+        }
+
         if (Match(TokenType.Identifier))
         {
             var node = ParseIdentifierExpression();
@@ -69,10 +76,18 @@ public class TokensParser
         throw new Exception("Expected a statement");
     }
 
+    private ConditionalExpression ParseConditionalExpression()
+    {
+        var condition = ParseExpression();
+        var statement = ParseStatement();
+        
+        return new ConditionalExpression(condition, statement);
+    }
+
     private ScopedNode ParseScopedNode()
     {
         _ = Expect(TokenType.Punctuation, "{");
-        
+
         var scopedNode = new ScopedNode();
 
         while (!Match(TokenType.Punctuation, "}"))
@@ -163,20 +178,24 @@ public class TokensParser
         while (true)
         {
             var op = _tokens[_currentTokenIndex];
-            if (Match(TokenType.Punctuation, ";"))
+            if (Match(TokenType.Punctuation))
             {
                 break;
             }
-            
-            if (Match(TokenType.Punctuation, ","))
-            {
-                break;
-            }
-
-            if (Match(TokenType.Punctuation, ")"))
-            {
-                break;
-            }
+            // if (Match(TokenType.Punctuation, ";"))
+            // {
+            //     break;
+            // }
+            //
+            // if (Match(TokenType.Punctuation, ","))
+            // {
+            //     break;
+            // }
+            //
+            // if (Match(TokenType.Punctuation, ")"))
+            // {
+            //     break;
+            // }
 
             var precedence = GetPrecedence(op);
             if (precedence < minPrecedence)

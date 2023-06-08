@@ -8,11 +8,11 @@ namespace SharpScript.Evaluator;
 
 public class ProgramEvaluator
 {
-    private readonly Dictionary<string, object?> _environment;
+    private readonly Dictionary<string, object?> _globalEnvironment;
 
     public ProgramEvaluator()
     {
-        _environment = new();
+        _globalEnvironment = new();
         SetupEnvironment();
     }
 
@@ -30,6 +30,7 @@ public class ProgramEvaluator
             FunctionCall functionCall => EvaluateFunctionCall(functionCall),
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression),
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode),
+            ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
@@ -56,6 +57,21 @@ public class ProgramEvaluator
 
         return result;
     }
+    
+    private object? EvaluateConditionalExpression(ConditionalExpression conditionalExpression)
+    {
+        var condition = Evaluate(conditionalExpression.Condition);
+        if (condition != null)
+        {
+            return Evaluate(conditionalExpression.True);
+        }
+        if (conditionalExpression.False != null)
+        {
+            return Evaluate(conditionalExpression.False);
+        }
+
+        return null;
+    }
 
     private object? EvaluateBinaryExpression(BinaryExpression binaryExpression)
     {
@@ -78,9 +94,9 @@ public class ProgramEvaluator
     {
         var funcName = functionCall.Name;
 
-        ThrowHelper.ThrowIfNotCallable(_environment, funcName);
+        ThrowHelper.ThrowIfNotCallable(_globalEnvironment, funcName);
 
-        var del = _environment[funcName] as Delegate;
+        var del = _globalEnvironment[funcName] as Delegate;
 
         var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>());
 
@@ -96,19 +112,19 @@ public class ProgramEvaluator
     {
         var leftName = variableAssignment.Name;
 
-        ThrowHelper.ThrowIfVariableNotDeclared(_environment, leftName);
+        ThrowHelper.ThrowIfVariableNotDeclared(_globalEnvironment, leftName);
 
         var value = Evaluate(variableAssignment.Value);
-        _environment[variableAssignment.Name] = value;
+        _globalEnvironment[variableAssignment.Name] = value;
         return value;
     }
 
     private object? EvaluateVariableDeclaration(VariableDeclaration variableDeclaration)
     {
-        ThrowHelper.ThrowIfVariableDeclared(_environment, variableDeclaration.Name);
+        ThrowHelper.ThrowIfVariableDeclared(_globalEnvironment, variableDeclaration.Name);
 
         var value = Evaluate(variableDeclaration.Value!);
-        _environment[variableDeclaration.Name] = value;
+        _globalEnvironment[variableDeclaration.Name] = value;
         return value;
     }
 
@@ -124,8 +140,8 @@ public class ProgramEvaluator
 
     private object? EvaluateVariableExpression(PrimaryExpression variableExpression)
     {
-        ThrowHelper.ThrowIfVariableNotDeclared(_environment, variableExpression.Value);
-        return _environment[variableExpression.Value];
+        ThrowHelper.ThrowIfVariableNotDeclared(_globalEnvironment, variableExpression.Value);
+        return _globalEnvironment[variableExpression.Value];
     }
 
     private object?[] EvaluateCallArguments(IEnumerable<NodeExpression> args)
@@ -135,8 +151,8 @@ public class ProgramEvaluator
 
     private void SetupEnvironment()
     {
-        _environment["print"] = Print;
-        _environment["rand"] = GetRandomNumber;
+        _globalEnvironment["print"] = Print;
+        _globalEnvironment["rand"] = GetRandomNumber;
     }
 
     private static void Print(params object[] args)
