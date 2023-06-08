@@ -38,7 +38,7 @@ public class TokensParser
     {
         if (Match(TokenType.Keyword, "const"))
         {
-            ++_currentTokenIndex; // skip const key word
+            _ = Expect(TokenType.Keyword, "const");
             var node = ParseConstVariableDeclaration();
             _ = Expect(TokenType.Punctuation, ";");
             return node;
@@ -46,7 +46,7 @@ public class TokensParser
 
         if (Match(TokenType.Keyword, "let"))
         {
-            ++_currentTokenIndex; // skip let key word
+            _ = Expect(TokenType.Keyword, "let");
             var node = ParseLetVariableDeclaration();
             _ = Expect(TokenType.Punctuation, ";");
             return node;
@@ -54,7 +54,7 @@ public class TokensParser
 
         if (Match(TokenType.Keyword, "if"))
         {
-            ++_currentTokenIndex; // skip if key word
+            _ = Expect(TokenType.Keyword, "if");
             var node = ParseConditionalExpression();
             return node;
         }
@@ -79,9 +79,17 @@ public class TokensParser
     private ConditionalExpression ParseConditionalExpression()
     {
         var condition = ParseExpression();
-        var statement = ParseStatement();
-        
-        return new ConditionalExpression(condition, statement);
+        var trueStatement = ParseStatement();
+
+        Node? falseStatement = null;
+
+        if (Match(TokenType.Keyword, "else"))
+        {
+            _ = Expect(TokenType.Keyword, "else");
+            falseStatement = ParseStatement();
+        }
+
+        return new ConditionalExpression(condition, trueStatement, falseStatement);
     }
 
     private ScopedNode ParseScopedNode()
