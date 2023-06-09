@@ -34,9 +34,9 @@ public static class Program
 
         var parser = new TokensParser(tokens);
         var tree = parser.ParseTokens();
-
+        
         Console.WriteLine(tree);
-
+        
         var evaluator = new ProgramEvaluator();
         evaluator.Evaluate(tree);
     }

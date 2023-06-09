@@ -2,6 +2,11 @@ namespace SharpScript.Evaluator.Helpers;
 
 public static class MathHelper
 {
+    internal static decimal UnaryMinus(object operand)
+    {
+        var value = (decimal)operand;
+        return -value;
+    }
     internal static decimal Sum(object? left, object? right)
     {
         var (l, r) = ConvertOperands(left, right);
@@ -26,15 +31,21 @@ public static class MathHelper
         return l / r;
     }
 
-    private static (decimal, decimal) ConvertOperands(object? left, object? right)
+    private static decimal ConvertOperand(object? operand)
     {
-        if (left == null || right == null)
+        if (operand == null)
         {
             throw new Exception("Operands should not be null");
         }
 
-        var l = (decimal)left;
-        var r = (decimal)right;
+        return (decimal)operand;
+    }
+
+    private static (decimal, decimal) ConvertOperands(object? left, object? right)
+    {
+        var l = ConvertOperand(left);
+        var r = ConvertOperand(right);
+        
         return (l, r);
     }
 }

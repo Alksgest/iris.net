@@ -190,20 +190,6 @@ public class TokensParser
             {
                 break;
             }
-            // if (Match(TokenType.Punctuation, ";"))
-            // {
-            //     break;
-            // }
-            //
-            // if (Match(TokenType.Punctuation, ","))
-            // {
-            //     break;
-            // }
-            //
-            // if (Match(TokenType.Punctuation, ")"))
-            // {
-            //     break;
-            // }
 
             var precedence = GetPrecedence(op);
             if (precedence < minPrecedence)
@@ -230,6 +216,15 @@ public class TokensParser
             return expr;
         }
 
+        if (Match(TokenType.Operator, "-"))
+        {
+            var op = Expect(TokenType.Operator, "-").Value;
+            var expr = ParsePrimary();
+            var unaryExpression = new UnaryExpression(expr, op);
+
+            return unaryExpression;
+        }
+        
         return ParsePrimary();
     }
 

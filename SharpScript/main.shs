@@ -1,11 +1,2 @@
-let a;
-
-if a {
-    const c = 10;
-    print(c);
-} else {
-    const c = 5;
-    print(c);
-}
-
-print(c);
+let a = -1232;
+print(a);

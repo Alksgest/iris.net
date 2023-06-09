@@ -10,7 +10,7 @@ namespace SharpScript.Lexer;
 // TODO: add while loop
 // TODO: extend evaluations metadata
 // TODO: handle function creation
-// TODO: handle scope creation +--
+// TODO: handle scope creation +
 // TODO: handle immutability (let mut)
 public class Tokenizer
 {
@@ -148,6 +148,15 @@ public class Tokenizer
         var intermediateToken = tokenBuilder.ToString();
         if (_operators.Contains($"{intermediateToken}{c}"))
         {
+            tokenBuilder.Append(c);
+        }
+        else if (char.IsNumber(c))
+        {
+            _tokenizerState = TokenizerState.Start;
+            var token = tokenBuilder.ToString(); // add prev token
+            _tokens.Add(ParseToken(token));
+            tokenBuilder.Clear();
+            
             tokenBuilder.Append(c);
         }
         else if (_emptySymbols.Contains(c))

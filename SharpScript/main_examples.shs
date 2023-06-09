@@ -75,3 +75,16 @@ if a + b {
     const c = 10;
     print(c);
 }
+
+
+let a;
+
+if a {
+    const c = 10;
+    print(c);
+} else {
+    const c = 5;
+    print(c);
+}
+
+print(c);

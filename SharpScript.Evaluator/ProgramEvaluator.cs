@@ -45,13 +45,14 @@ public class ProgramEvaluator
                 EvaluateFunctionCallExpression(functionCallExpression, envs),
             FunctionCall functionCall => EvaluateFunctionCall(functionCall, envs),
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression, envs),
+            UnaryExpression unaryExpression => EvaluateUnaryExpression(unaryExpression, envs),
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
     }
-
+    
     private object? EvaluateProgram(RootNode program, List<ScopeEnvironment> environments)
     {
         object? result = null;
@@ -98,6 +99,19 @@ public class ProgramEvaluator
 
         return null;
     }
+    
+    private object? EvaluateUnaryExpression(UnaryExpression unaryExpression, List<ScopeEnvironment> envs)
+    {
+        var left = Evaluate(unaryExpression.Left);
+        
+        var result = unaryExpression.Operator switch
+        {
+            "-" => MathHelper.UnaryMinus(left),
+            _ => throw new ArgumentException($"{unaryExpression.Operator} is not accepted unary operator")
+        };
+
+        return result;
+    }
 
     private object? EvaluateBinaryExpression(BinaryExpression binaryExpression, List<ScopeEnvironment> environments)
     {
@@ -110,7 +124,7 @@ public class ProgramEvaluator
             "-" => MathHelper.Subtract(left, right),
             "*" => MathHelper.Multiply(left, right),
             "/" => MathHelper.Divide(left, right),
-            _ => throw new ArgumentException("Not accepted operand")
+            _ => throw new ArgumentException($"{binaryExpression.Operator} is not accepted binary operator")
         };
 
         return result;
