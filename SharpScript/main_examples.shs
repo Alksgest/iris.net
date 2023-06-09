@@ -43,12 +43,6 @@ print(((5 + 3) * 7) / 2);
     }
 }
 
-
-
-
-
-
-
 const a = 5; 
 const b = a;
 let c; 

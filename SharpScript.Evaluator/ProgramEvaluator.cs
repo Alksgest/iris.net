@@ -1,4 +1,6 @@
 using SharpScript.Evaluator.Helpers;
+using SharpScript.Evaluator.Models;
+using SharpScript.Evaluator.StandardLibrary;
 using SharpScript.Parser.Models.Ast;
 using SharpScript.Parser.Models.Ast.Assignments;
 using SharpScript.Parser.Models.Ast.Declarations;
@@ -13,7 +15,7 @@ public class ProgramEvaluator
     public ProgramEvaluator()
     {
         _globalEnvironment = new("Global");
-        SetupEnvironment();
+        StandardLibraryInitializer.Init(new List<ScopeEnvironment> { _globalEnvironment });
     }
 
     public object? Evaluate(Node node, List<ScopeEnvironment>? environments = null)
@@ -44,7 +46,7 @@ public class ProgramEvaluator
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
     }
-    
+
     private object? EvaluateProgram(RootNode program, List<ScopeEnvironment> environments)
     {
         object? result = null;
@@ -73,7 +75,7 @@ public class ProgramEvaluator
 
         return result;
     }
-    
+
     private object? EvaluateWhileExpression(WhileExpression whileExpression, List<ScopeEnvironment> envs)
     {
         // TODO: probably add logic for avoiding 'while(true)'
@@ -104,11 +106,11 @@ public class ProgramEvaluator
 
         return null;
     }
-    
+
     private object? EvaluateUnaryExpression(UnaryExpression unaryExpression, List<ScopeEnvironment> envs)
     {
         var left = Evaluate(unaryExpression.Left, envs)!;
-        
+
         object result = unaryExpression.Operator switch
         {
             "-" => OperatorsHelper.UnaryMinus(left),
@@ -143,15 +145,18 @@ public class ProgramEvaluator
 
         return result;
     }
-    
-    private object? EvaluateFunctionDeclaration(FunctionDeclaration functionDeclaration, IReadOnlyCollection<ScopeEnvironment> envs)
+
+    private object? EvaluateFunctionDeclaration(
+        FunctionDeclaration functionDeclaration,
+        List<ScopeEnvironment> envs)
     {
         var func = (object[] inputArgs) => DeclaredFunction(inputArgs, functionDeclaration, envs);
         EnvironmentHelper.DeclareVariable(envs, functionDeclaration.Name, func);
         return null;
     }
 
-    private object? DeclaredFunction(object[] inputArgs, FunctionDeclaration functionDeclaration, IEnumerable<ScopeEnvironment> envs)
+    private object? DeclaredFunction(object[] inputArgs, FunctionDeclaration functionDeclaration,
+        IEnumerable<ScopeEnvironment> envs)
     {
         var args = functionDeclaration.Arguments;
 
@@ -168,7 +173,7 @@ public class ProgramEvaluator
 
         return obj;
     }
-    
+
     private object? EvaluateFunctionCallExpression(
         FunctionCallExpression functionCallExpression,
         List<ScopeEnvironment> environments)
@@ -186,7 +191,8 @@ public class ProgramEvaluator
         var del = func as Delegate;
 
         var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
-
+        
+        // return del!.DynamicInvoke(new object[] { args });
         return del!.DynamicInvoke(new object[] { args });
     }
 
@@ -222,14 +228,14 @@ public class ProgramEvaluator
     {
         return numberExpression.Value;
     }
-    
+
     private static bool EvaluateBooleanExpression(
         PrimaryExpression<bool> booleanExpression,
         List<ScopeEnvironment> environments)
     {
         return booleanExpression.Value;
     }
-    
+
     private static string EvaluateStringExpression(
         PrimaryExpression<string> stringExpression,
         List<ScopeEnvironment> environments)
@@ -250,30 +256,5 @@ public class ProgramEvaluator
     private object?[] EvaluateCallArguments(IEnumerable<NodeExpression> args, List<ScopeEnvironment> environments)
     {
         return args.Select((arg) => Evaluate(arg, environments)).ToArray();
-    }
-
-    // TODO: move setup of global end to class with annotation
-    private void SetupEnvironment()
-    {
-        _globalEnvironment.Variables["print"] = Print;
-        _globalEnvironment.Variables["rand"] = GetRandomNumber;
-    }
-
-    private static void Print(params object[] args)
-    {
-        Console.WriteLine(string.Join(" ", args));
-    }
-
-    private static readonly Random Random = new();
-
-    private static decimal GetRandomNumber(object[] args)
-    {
-        var l = (decimal)args[0];
-        var r = (decimal)args[1];
-
-        var ll = (int)l;
-        var rr = (int)r;
-
-        return Random.Next(ll, rr);
     }
 }

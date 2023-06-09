@@ -1,4 +1,4 @@
-namespace SharpScript.Evaluator;
+namespace SharpScript.Evaluator.Models;
 
 public class ScopeEnvironment
 {

@@ -1,3 +1,5 @@
+using SharpScript.Evaluator.Models;
+
 namespace SharpScript.Evaluator.Helpers;
 
 internal static class EnvironmentHelper
@@ -26,9 +28,8 @@ internal static class EnvironmentHelper
         env.Variables[name] = value;
     }
     
-    internal static void DeclareVariable(IEnumerable<ScopeEnvironment> environments, string name, object? value)
+    internal static void DeclareVariable(List<ScopeEnvironment> envs, string name, object? value)
     {
-        var envs = environments.ToList();
         var env = envs.SingleOrDefault(env => env.Variables.ContainsKey(name));
 
         if (env == null)
@@ -38,6 +39,6 @@ internal static class EnvironmentHelper
             return;
         }
         
-        env.Variables[name] = value;
+        env.Variables[name] = value; //TODO: probably mistake, exception should be thrown
     }
 }

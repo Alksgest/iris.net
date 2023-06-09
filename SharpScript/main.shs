@@ -1,5 +1,6 @@
 function a(a) {
     print(a);
+    print(rand(0, 10));
 }
 
 a("This is working!");

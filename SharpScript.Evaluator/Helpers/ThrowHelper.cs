@@ -1,3 +1,5 @@
+using SharpScript.Evaluator.Models;
+
 namespace SharpScript.Evaluator.Helpers;
 
 public static class ThrowHelper
