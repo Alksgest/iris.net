@@ -12,6 +12,7 @@ namespace SharpScript.Lexer;
 // TODO: handle function creation
 // TODO: handle scope creation +
 // TODO: handle immutability (let mut)
+// TODO: add data structures as array, dict, object, class
 public class Tokenizer
 {
     private List<Token> _tokens = new();
@@ -23,7 +24,7 @@ public class Tokenizer
     private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}" };
 
     private readonly List<string>
-        _keyWords = new() { "const", "let", "if", "else", "true", "false", "while" }; // remove const, add mut
+        _keyWords = new() { "const", "let", "if", "else", "true", "false", "while", "null" }; // remove const, add mut
 
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
     private readonly List<char> _stringLiteralIdentifiers = new() { '\"' };

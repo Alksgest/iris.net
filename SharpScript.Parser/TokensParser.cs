@@ -242,17 +242,26 @@ public class TokensParser
     {
         if (Match(TokenType.NumberValue))
         {
-            return new NumberExpression(decimal.Parse(Expect(TokenType.NumberValue).Value));
+            var value = decimal.Parse(Expect(TokenType.NumberValue).Value);
+            return new NumberExpression(value);
         }
         
         if (Match(TokenType.Keyword, "true") || Match(TokenType.Keyword, "false"))
         {
-            return new BooleanExpression(bool.Parse(Expect(TokenType.Keyword).Value));
+            var value = bool.Parse(Expect(TokenType.Keyword).Value);
+            return new BooleanExpression(value);
         }
 
         if (Match(TokenType.StringValue))
         {
-            return new StringExpression(Expect(TokenType.StringValue).Value);
+            var value = Expect(TokenType.StringValue).Value;
+            return new StringExpression(value);
+        }
+        
+        if (Match(TokenType.Keyword, "null"))
+        {
+            _ = Expect(TokenType.Keyword, "null");
+            return new NullExpression();
         }
 
         if (Match(TokenType.Identifier))

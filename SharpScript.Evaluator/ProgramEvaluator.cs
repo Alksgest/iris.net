@@ -41,6 +41,7 @@ public class ProgramEvaluator
             NumberExpression numberExpression => EvaluateNumberExpression(numberExpression, envs),
             BooleanExpression booleanExpression => EvaluateBooleanExpression(booleanExpression, envs),
             StringExpression stringExpression => EvaluateStringExpression(stringExpression, envs),
+            NullExpression _ => null,
             VariableExpression variableExpression => EvaluateVariableExpression(variableExpression, envs),
             FunctionCallExpression functionCallExpression =>
                 EvaluateFunctionCallExpression(functionCallExpression, envs),
@@ -79,13 +80,14 @@ public class ProgramEvaluator
             result = Evaluate(statement, newEnvs);
         }
 
-        newEnvs.Clear(); // TODO: we need totally clear scope env
+        newEnvs.Clear();
 
         return result;
     }
     
     private object? EvaluateWhileExpression(WhileExpression whileExpression, List<ScopeEnvironment> envs)
     {
+        // TODO: probably add logic for avoiding 'while(true)'
         var condition = (bool)Evaluate(whileExpression.Condition, envs);
         while (condition)
         {

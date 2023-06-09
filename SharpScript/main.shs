@@ -1,5 +1,6 @@
-const a = 0;
-while(a != 5) {
+const a = null;
+a = 1;
+while a != 5 {
     print(a);
     a = a + 1;
 }
