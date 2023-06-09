@@ -3,8 +3,8 @@ using SharpScript.Lexer.Models;
 
 namespace SharpScript.Lexer;
 
-// TODO: handle math operators +-
-// TODO: add if else operators expression
+// TODO: handle math operators +- | add more operators | add unary operators
+// TODO: add if else operators expression +- | add support for if else if
 // TODO: add true, false, null literals
 // TODO: make value generic instead of object
 // TODO: add while loop

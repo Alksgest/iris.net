@@ -6,77 +6,103 @@ using SharpScript.Parser.Models.Ast.Expressions;
 
 namespace SharpScript.Evaluator;
 
+public class ScopeEnvironment
+{
+    public string Name { get; }
+    public Guid Id { get; }
+    public Dictionary<string, object?> Variables { get; } = new();
+
+    public ScopeEnvironment(string name)
+    {
+        Name = name;
+        Id = Guid.NewGuid();
+    }
+}
+
 public class ProgramEvaluator
 {
-    private readonly Dictionary<string, object?> _globalEnvironment;
+    private readonly ScopeEnvironment _globalEnvironment;
 
     public ProgramEvaluator()
     {
-        _globalEnvironment = new();
+        _globalEnvironment = new("Global");
         SetupEnvironment();
     }
 
-    public object? Evaluate(Node node)
+    public object? Evaluate(Node node, List<ScopeEnvironment>? environments = null)
     {
+        var envs = environments ?? new List<ScopeEnvironment> { _globalEnvironment };
+
         return node switch
         {
-            RootNode program => EvaluateProgram(program),
-            VariableDeclaration variableDeclaration => EvaluateVariableDeclaration(variableDeclaration),
-            VariableAssignment variableAssignment => EvaluateVariableAssignment(variableAssignment),
-            NumberExpression numberExpression => EvaluateNumberExpression(numberExpression),
-            StringExpression stringExpression => EvaluateStringExpression(stringExpression),
-            VariableExpression variableExpression => EvaluateVariableExpression(variableExpression),
-            FunctionCallExpression functionCallExpression => EvaluateFunctionCallExpression(functionCallExpression),
-            FunctionCall functionCall => EvaluateFunctionCall(functionCall),
-            BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression),
-            ScopedNode scopedNode => EvaluateScopedNode(scopedNode),
-            ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression),
+            RootNode program => EvaluateProgram(program, envs),
+            VariableDeclaration variableDeclaration => EvaluateVariableDeclaration(variableDeclaration, envs),
+            VariableAssignment variableAssignment => EvaluateVariableAssignment(variableAssignment, envs),
+            NumberExpression numberExpression => EvaluateNumberExpression(numberExpression, envs),
+            StringExpression stringExpression => EvaluateStringExpression(stringExpression, envs),
+            VariableExpression variableExpression => EvaluateVariableExpression(variableExpression, envs),
+            FunctionCallExpression functionCallExpression =>
+                EvaluateFunctionCallExpression(functionCallExpression, envs),
+            FunctionCall functionCall => EvaluateFunctionCall(functionCall, envs),
+            BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression, envs),
+            ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
+            ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
     }
-    
-    private object? EvaluateProgram(RootNode program)
+
+    private object? EvaluateProgram(RootNode program, List<ScopeEnvironment> environments)
     {
         object? result = null;
         foreach (var statement in program.Statements)
         {
-            result = Evaluate(statement);
+            result = Evaluate(statement, environments);
         }
 
         return result;
     }
-    
-    private object? EvaluateScopedNode(ScopedNode scopedNode)
+
+    private object? EvaluateScopedNode(ScopedNode scopedNode, List<ScopeEnvironment> environments)
     {
         object? result = null;
+
+        var localEnv = new ScopeEnvironment($"Local_{environments.Count}");
+
+        var newEnvs = new List<ScopeEnvironment>(environments) { localEnv };
+
         foreach (var statement in scopedNode.Statements)
         {
-            result = Evaluate(statement);
+            result = Evaluate(statement, newEnvs);
         }
+
+        newEnvs.Clear(); // TODO: we need totally clear scope env
 
         return result;
     }
-    
-    private object? EvaluateConditionalExpression(ConditionalExpression conditionalExpression)
+
+    private object? EvaluateConditionalExpression(
+        ConditionalExpression conditionalExpression,
+        List<ScopeEnvironment> environments)
     {
-        var condition = Evaluate(conditionalExpression.Condition);
+        var condition = Evaluate(conditionalExpression.Condition, environments);
         if (condition != null)
         {
-            return Evaluate(conditionalExpression.True);
+            return Evaluate(conditionalExpression.True, environments);
         }
+
         if (conditionalExpression.False != null)
         {
-            return Evaluate(conditionalExpression.False);
+            return Evaluate(conditionalExpression.False, environments);
         }
 
         return null;
     }
 
-    private object? EvaluateBinaryExpression(BinaryExpression binaryExpression)
+    private object? EvaluateBinaryExpression(BinaryExpression binaryExpression, List<ScopeEnvironment> environments)
     {
-        var left = Evaluate(binaryExpression.Left);
-        var right = Evaluate(binaryExpression.Right);
+        var left = Evaluate(binaryExpression.Left, environments);
+        var right = Evaluate(binaryExpression.Right, environments);
 
         var result = binaryExpression.Operator switch
         {
@@ -90,69 +116,88 @@ public class ProgramEvaluator
         return result;
     }
 
-    private object? EvaluateFunctionCall(FunctionCall functionCall)
+    private object? EvaluateFunctionCall(FunctionCall functionCall, List<ScopeEnvironment> environments)
     {
         var funcName = functionCall.Name;
 
-        ThrowHelper.ThrowIfNotCallable(_globalEnvironment, funcName);
+        ThrowHelper.ThrowIfNotCallable(environments, funcName);
 
-        var del = _globalEnvironment[funcName] as Delegate;
+        var func = EnvironmentHelper.GetVariableValue(environments, funcName);
+        var del = func as Delegate;
 
-        var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>());
+        var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
 
         return del!.DynamicInvoke(new object[] { args });
     }
 
-    private object? EvaluateFunctionCallExpression(FunctionCallExpression functionCallExpression)
+    private object? EvaluateFunctionCallExpression(
+        FunctionCallExpression functionCallExpression,
+        List<ScopeEnvironment> environments)
     {
-        return EvaluateFunctionCall(functionCallExpression.FunctionCall);
+        return EvaluateFunctionCall(functionCallExpression.FunctionCall, environments);
     }
 
-    private object? EvaluateVariableAssignment(VariableAssignment variableAssignment)
+    private object? EvaluateVariableAssignment(
+        VariableAssignment variableAssignment,
+        List<ScopeEnvironment> environments)
     {
         var leftName = variableAssignment.Name;
 
-        ThrowHelper.ThrowIfVariableNotDeclared(_globalEnvironment, leftName);
+        ThrowHelper.ThrowIfVariableNotDeclared(environments, leftName);
 
-        var value = Evaluate(variableAssignment.Value);
-        _globalEnvironment[variableAssignment.Name] = value;
+        var value = Evaluate(variableAssignment.Value, environments);
+
+        EnvironmentHelper.SetVariableValue(environments, variableAssignment.Name, value);
         return value;
     }
 
-    private object? EvaluateVariableDeclaration(VariableDeclaration variableDeclaration)
+    private object? EvaluateVariableDeclaration(
+        VariableDeclaration variableDeclaration,
+        List<ScopeEnvironment> environments)
     {
-        ThrowHelper.ThrowIfVariableDeclared(_globalEnvironment, variableDeclaration.Name);
+        ThrowHelper.ThrowIfVariableDeclared(environments, variableDeclaration.Name);
 
-        var value = Evaluate(variableDeclaration.Value!);
-        _globalEnvironment[variableDeclaration.Name] = value;
+        var value = Evaluate(variableDeclaration.Value!, environments);
+
+        EnvironmentHelper.DeclareVariable(environments, variableDeclaration.Name, value);
         return value;
     }
 
-    private static object? EvaluateNumberExpression(PrimaryExpression numberExpression)
+    private static object? EvaluateNumberExpression(
+        PrimaryExpression numberExpression,
+        List<ScopeEnvironment> environments)
     {
         return decimal.Parse(numberExpression.Value);
     }
 
-    private static object? EvaluateStringExpression(PrimaryExpression stringExpression)
+    private static object? EvaluateStringExpression(
+        PrimaryExpression stringExpression,
+        List<ScopeEnvironment> environments)
     {
         return stringExpression.Value[1..^1];
     }
 
-    private object? EvaluateVariableExpression(PrimaryExpression variableExpression)
+    private object? EvaluateVariableExpression(
+        PrimaryExpression variableExpression,
+        IReadOnlyCollection<ScopeEnvironment> environments)
     {
-        ThrowHelper.ThrowIfVariableNotDeclared(_globalEnvironment, variableExpression.Value);
-        return _globalEnvironment[variableExpression.Value];
+        //TODO: check global env
+        ThrowHelper.ThrowIfVariableNotDeclared(environments, variableExpression.Value);
+
+        var value = EnvironmentHelper.GetVariableValue(environments, variableExpression.Value);
+        return value;
     }
 
-    private object?[] EvaluateCallArguments(IEnumerable<NodeExpression> args)
+    private object?[] EvaluateCallArguments(IEnumerable<NodeExpression> args, List<ScopeEnvironment> environments)
     {
-        return args.Select(Evaluate).ToArray();
+        return args.Select((arg) => Evaluate(arg, environments)).ToArray();
     }
 
+    // TODO: move setup of global end to class with annotation
     private void SetupEnvironment()
     {
-        _globalEnvironment["print"] = Print;
-        _globalEnvironment["rand"] = GetRandomNumber;
+        _globalEnvironment.Variables["print"] = Print;
+        _globalEnvironment.Variables["rand"] = GetRandomNumber;
     }
 
     private static void Print(params object[] args)

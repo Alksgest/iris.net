@@ -7,3 +7,5 @@ if a {
     const c = 5;
     print(c);
 }
+
+print(c);
