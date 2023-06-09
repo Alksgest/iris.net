@@ -201,28 +201,28 @@ public class ProgramEvaluator
     }
 
     private static decimal EvaluateNumberExpression(
-        PrimaryExpression numberExpression,
+        PrimaryExpression<decimal> numberExpression,
         List<ScopeEnvironment> environments)
     {
-        return decimal.Parse(numberExpression.Value);
+        return numberExpression.Value;
     }
     
     private static bool EvaluateBooleanExpression(
-        PrimaryExpression booleanExpression,
+        PrimaryExpression<bool> booleanExpression,
         List<ScopeEnvironment> environments)
     {
-        return bool.Parse(booleanExpression.Value);
+        return booleanExpression.Value;
     }
     
     private static string EvaluateStringExpression(
-        PrimaryExpression stringExpression,
+        PrimaryExpression<string> stringExpression,
         List<ScopeEnvironment> environments)
     {
         return stringExpression.Value[1..^1];
     }
 
     private object? EvaluateVariableExpression(
-        PrimaryExpression variableExpression,
+        PrimaryExpression<string> variableExpression,
         IReadOnlyCollection<ScopeEnvironment> environments)
     {
         ThrowHelper.ThrowIfVariableNotDeclared(environments, variableExpression.Value);

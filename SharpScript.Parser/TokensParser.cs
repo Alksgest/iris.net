@@ -242,7 +242,12 @@ public class TokensParser
     {
         if (Match(TokenType.NumberValue))
         {
-            return new NumberExpression(Expect(TokenType.NumberValue).Value);
+            return new NumberExpression(decimal.Parse(Expect(TokenType.NumberValue).Value));
+        }
+        
+        if (Match(TokenType.Keyword, "true") || Match(TokenType.Keyword, "false"))
+        {
+            return new BooleanExpression(bool.Parse(Expect(TokenType.Keyword).Value));
         }
 
         if (Match(TokenType.StringValue))
@@ -261,11 +266,6 @@ public class TokensParser
             }
 
             return new VariableExpression(Expect(TokenType.Identifier).Value);
-        }
-        
-        if (Match(TokenType.Keyword, "true") || Match(TokenType.Keyword, "false"))
-        {
-            return new BooleanExpression(Expect(TokenType.Keyword).Value);
         }
 
         throw new Exception("Unexpected expression");
