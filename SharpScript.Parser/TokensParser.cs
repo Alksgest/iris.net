@@ -224,7 +224,7 @@ public class TokensParser
 
             return unaryExpression;
         }
-        
+
         return ParsePrimary();
     }
 
@@ -242,15 +242,20 @@ public class TokensParser
 
         if (Match(TokenType.Identifier))
         {
-            if (!MatchNext(TokenType.Punctuation, "("))
+            if (MatchNext(TokenType.Punctuation, "("))
             {
-                return new VariableExpression(Expect(TokenType.Identifier).Value);
+                var token = Expect(TokenType.Identifier).Value;
+                var functionCall = ParseFunctionCall(token);
+
+                return new FunctionCallExpression(token, functionCall);
             }
 
-            var token = Expect(TokenType.Identifier).Value;
-            var functionCall = ParseFunctionCall(token);
-
-            return new FunctionCallExpression(token, functionCall);
+            return new VariableExpression(Expect(TokenType.Identifier).Value);
+        }
+        
+        if (Match(TokenType.Keyword, "true") || Match(TokenType.Keyword, "false"))
+        {
+            return new BooleanExpression(Expect(TokenType.Keyword).Value);
         }
 
         throw new Exception("Unexpected expression");

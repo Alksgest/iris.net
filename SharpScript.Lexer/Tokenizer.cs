@@ -18,7 +18,10 @@ public class Tokenizer
 
     private readonly List<string> _operators = new() { "=", "+", "-", "*", "/" };
     private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}" };
-    private readonly List<string> _keyWords = new() { "const", "let", "if", "else" }; // remove const, add mut
+
+    private readonly List<string>
+        _keyWords = new() { "const", "let", "if", "else", "true", "false" }; // remove const, add mut
+
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
     private readonly List<char> _stringLiteralIdentifiers = new() { '\"' };
 

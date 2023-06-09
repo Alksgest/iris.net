@@ -39,6 +39,7 @@ public class ProgramEvaluator
             VariableDeclaration variableDeclaration => EvaluateVariableDeclaration(variableDeclaration, envs),
             VariableAssignment variableAssignment => EvaluateVariableAssignment(variableAssignment, envs),
             NumberExpression numberExpression => EvaluateNumberExpression(numberExpression, envs),
+            BooleanExpression booleanExpression => EvaluateBooleanExpression(booleanExpression, envs),
             StringExpression stringExpression => EvaluateStringExpression(stringExpression, envs),
             VariableExpression variableExpression => EvaluateVariableExpression(variableExpression, envs),
             FunctionCallExpression functionCallExpression =>
@@ -177,14 +178,21 @@ public class ProgramEvaluator
         return value;
     }
 
-    private static object? EvaluateNumberExpression(
+    private static decimal EvaluateNumberExpression(
         PrimaryExpression numberExpression,
         List<ScopeEnvironment> environments)
     {
         return decimal.Parse(numberExpression.Value);
     }
-
-    private static object? EvaluateStringExpression(
+    
+    private static bool EvaluateBooleanExpression(
+        PrimaryExpression booleanExpression,
+        List<ScopeEnvironment> environments)
+    {
+        return bool.Parse(booleanExpression.Value);
+    }
+    
+    private static string EvaluateStringExpression(
         PrimaryExpression stringExpression,
         List<ScopeEnvironment> environments)
     {
@@ -195,7 +203,6 @@ public class ProgramEvaluator
         PrimaryExpression variableExpression,
         IReadOnlyCollection<ScopeEnvironment> environments)
     {
-        //TODO: check global env
         ThrowHelper.ThrowIfVariableNotDeclared(environments, variableExpression.Value);
 
         var value = EnvironmentHelper.GetVariableValue(environments, variableExpression.Value);
