@@ -16,11 +16,14 @@ public class Tokenizer
 {
     private List<Token> _tokens = new();
 
-    private readonly List<string> _operators = new() { "=", "+", "-", "*", "/", "!" };
+    // TODO: add support for binary operators
+    private readonly List<string> _operators = new()
+        { "=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|" };
+
     private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}" };
 
     private readonly List<string>
-        _keyWords = new() { "const", "let", "if", "else", "true", "false" }; // remove const, add mut
+        _keyWords = new() { "const", "let", "if", "else", "true", "false", "while" }; // remove const, add mut
 
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
     private readonly List<char> _stringLiteralIdentifiers = new() { '\"' };
@@ -160,7 +163,7 @@ public class Tokenizer
         else if (char.IsAsciiLetter(c))
         {
             FinalizeToken(tokenBuilder);
-            
+
             _tokenizerState = TokenizerState.Word;
             tokenBuilder.Append(c);
         }

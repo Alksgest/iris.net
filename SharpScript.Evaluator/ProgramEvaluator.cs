@@ -107,8 +107,8 @@ public class ProgramEvaluator
         
         object result = unaryExpression.Operator switch
         {
-            "-" => MathHelper.UnaryMinus(left),
-            "!" => MathHelper.LogicalNot(left),
+            "-" => OperatorsHelper.UnaryMinus(left),
+            "!" => OperatorsHelper.LogicalNot(left),
             _ => throw new ArgumentException($"{unaryExpression.Operator} is not accepted unary operator")
         };
 
@@ -120,12 +120,20 @@ public class ProgramEvaluator
         var left = Evaluate(binaryExpression.Left, environments);
         var right = Evaluate(binaryExpression.Right, environments);
 
-        var result = binaryExpression.Operator switch
+        object result = binaryExpression.Operator switch
         {
-            "+" => MathHelper.Sum(left, right),
-            "-" => MathHelper.Subtract(left, right),
-            "*" => MathHelper.Multiply(left, right),
-            "/" => MathHelper.Divide(left, right),
+            "+" => OperatorsHelper.Sum(left, right),
+            "-" => OperatorsHelper.Subtract(left, right),
+            "*" => OperatorsHelper.Multiply(left, right),
+            "/" => OperatorsHelper.Divide(left, right),
+            ">" => OperatorsHelper.GreaterThen(left, right),
+            "<" => OperatorsHelper.LessThen(left, right),
+            ">=" => OperatorsHelper.GreaterThen(left, right, true),
+            "<=" => OperatorsHelper.LessThen(left, right, true),
+            "==" => OperatorsHelper.Equal(left, right),
+            "!=" => OperatorsHelper.NotEqual(left, right),
+            "&&" => OperatorsHelper.LogicalAnd(left, right),
+            "||" => OperatorsHelper.LogicalOr(left, right),
             _ => throw new ArgumentException($"{binaryExpression.Operator} is not accepted binary operator")
         };
 

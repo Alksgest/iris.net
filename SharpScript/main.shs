@@ -1,2 +1,5 @@
-let a = !true;
-print(a);
+const a = 0;
+while(a != 5) {
+    print(a);
+    a = a + 1;
+}
