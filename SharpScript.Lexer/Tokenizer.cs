@@ -8,7 +8,7 @@ namespace SharpScript.Lexer;
 // TODO: add true, false, null literals
 // TODO: make value generic instead of object
 // TODO: add while loop
-// TODO: extend evaluations metadata
+// TODO: extend evaluations metadata with errors and warnings
 // TODO: handle function creation
 // TODO: handle scope creation +
 // TODO: handle immutability (let mut)

@@ -49,6 +49,7 @@ public class ProgramEvaluator
             UnaryExpression unaryExpression => EvaluateUnaryExpression(unaryExpression, envs),
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
+            WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
@@ -82,6 +83,18 @@ public class ProgramEvaluator
 
         return result;
     }
+    
+    private object? EvaluateWhileExpression(WhileExpression whileExpression, List<ScopeEnvironment> envs)
+    {
+        var condition = (bool)Evaluate(whileExpression.Condition, envs);
+        while (condition)
+        {
+            _ = Evaluate(whileExpression.Body, envs);
+            condition = (bool)Evaluate(whileExpression.Condition, envs);
+        }
+
+        return condition;
+    }
 
     private object? EvaluateConditionalExpression(
         ConditionalExpression conditionalExpression,
@@ -103,7 +116,7 @@ public class ProgramEvaluator
     
     private object? EvaluateUnaryExpression(UnaryExpression unaryExpression, List<ScopeEnvironment> envs)
     {
-        var left = Evaluate(unaryExpression.Left)!;
+        var left = Evaluate(unaryExpression.Left, envs)!;
         
         object result = unaryExpression.Operator switch
         {

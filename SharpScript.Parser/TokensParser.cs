@@ -58,6 +58,15 @@ public class TokensParser
             var node = ParseConditionalExpression();
             return node;
         }
+        
+        if (Match(TokenType.Keyword, "while"))
+        {
+            _ = Expect(TokenType.Keyword, "while");
+            var condition = ParseExpression();
+            var body = ParseScopedNode();
+            
+            return new WhileExpression(condition, body);
+        }
 
         if (Match(TokenType.Identifier))
         {
@@ -69,7 +78,6 @@ public class TokensParser
         if (Match(TokenType.Punctuation, "{"))
         {
             var node = ParseScopedNode();
-            _ = Expect(TokenType.Punctuation, "}");
             return node;
         }
 
@@ -103,6 +111,8 @@ public class TokensParser
             var node = ParseStatement();
             scopedNode.Statements.Add(node);
         }
+
+        _ = Expect(TokenType.Punctuation, "}");
 
         return scopedNode;
     }
