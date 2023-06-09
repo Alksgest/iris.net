@@ -7,6 +7,13 @@ public static class MathHelper
         var value = (decimal)operand;
         return -value;
     }
+    
+    internal static bool LogicalNot(object operand)
+    {
+        var value = (bool)operand;
+        return !value;
+    }
+    
     internal static decimal Sum(object? left, object? right)
     {
         var (l, r) = ConvertOperands(left, right);

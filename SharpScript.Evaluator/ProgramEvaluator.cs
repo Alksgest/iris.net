@@ -103,11 +103,12 @@ public class ProgramEvaluator
     
     private object? EvaluateUnaryExpression(UnaryExpression unaryExpression, List<ScopeEnvironment> envs)
     {
-        var left = Evaluate(unaryExpression.Left);
+        var left = Evaluate(unaryExpression.Left)!;
         
-        var result = unaryExpression.Operator switch
+        object result = unaryExpression.Operator switch
         {
             "-" => MathHelper.UnaryMinus(left),
+            "!" => MathHelper.LogicalNot(left),
             _ => throw new ArgumentException($"{unaryExpression.Operator} is not accepted unary operator")
         };
 

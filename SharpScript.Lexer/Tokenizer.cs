@@ -16,7 +16,7 @@ public class Tokenizer
 {
     private List<Token> _tokens = new();
 
-    private readonly List<string> _operators = new() { "=", "+", "-", "*", "/" };
+    private readonly List<string> _operators = new() { "=", "+", "-", "*", "/", "!" };
     private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}" };
 
     private readonly List<string>
@@ -157,6 +157,13 @@ public class Tokenizer
         {
             FinalizePrevTokenEndProcessCurrent(c, tokenBuilder);
         }
+        else if (char.IsAsciiLetter(c))
+        {
+            FinalizeToken(tokenBuilder);
+            
+            _tokenizerState = TokenizerState.Word;
+            tokenBuilder.Append(c);
+        }
         else if (_emptySymbols.Contains(c))
         {
             FinalizeToken(tokenBuilder);
@@ -207,20 +214,17 @@ public class Tokenizer
 
     private void FinalizePrevTokenEndProcessCurrent(char c, StringBuilder tokenBuilder)
     {
-        var token = tokenBuilder.ToString();
-        _tokens.Add(ParseToken(token));
-        tokenBuilder.Clear();
-        _tokenizerState = TokenizerState.Start;
+        FinalizeToken(tokenBuilder);
+
         _tokens.Add(ParseToken($"{c}"));
     }
 
     private void FinalizeToken(StringBuilder tokenBuilder)
     {
-        _tokenizerState = TokenizerState.Start;
         var token = tokenBuilder.ToString();
         _tokens.Add(ParseToken(token));
-
         tokenBuilder.Clear();
+        _tokenizerState = TokenizerState.Start;
     }
 
     private Token ParseToken(string token)

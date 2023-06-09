@@ -88,3 +88,7 @@ if a {
 }
 
 print(c);
+
+
+let a = !true;
+print(a);
