@@ -219,7 +219,7 @@ public class TokensParser
         if (Match(TokenType.Operator, "-"))
         {
             var op = Expect(TokenType.Operator, "-").Value;
-            var expr = ParsePrimary();
+            var expr = ParseExpression();
             var unaryExpression = new UnaryExpression(expr, op);
 
             return unaryExpression;

@@ -150,14 +150,9 @@ public class Tokenizer
         {
             tokenBuilder.Append(c);
         }
-        else if (char.IsNumber(c))
+        else if (char.IsNumber(c) || _punctuations.Contains($"{c}"))
         {
-            _tokenizerState = TokenizerState.Start;
-            var token = tokenBuilder.ToString(); // add prev token
-            _tokens.Add(ParseToken(token));
-            tokenBuilder.Clear();
-            
-            tokenBuilder.Append(c);
+            FinalizePrevTokenEndProcessCurrent(c, tokenBuilder);
         }
         else if (_emptySymbols.Contains(c))
         {
@@ -173,11 +168,15 @@ public class Tokenizer
         }
         else if (_punctuations.Contains($"{c}"))
         {
-            HandlePunctuationStart(c, tokenBuilder);
+            FinalizePrevTokenEndProcessCurrent(c, tokenBuilder);
         }
         else if (_emptySymbols.Contains(c))
         {
             FinalizeToken(tokenBuilder);
+        }
+        else if (_operators.Contains($"{c}"))
+        {
+            FinalizePrevTokenEndProcessCurrent(c, tokenBuilder);
         }
     }
 
@@ -191,15 +190,19 @@ public class Tokenizer
         }
         else if (_punctuations.Contains($"{c}"))
         {
-            HandlePunctuationStart(c, tokenBuilder);
+            FinalizePrevTokenEndProcessCurrent(c, tokenBuilder);
         }
         else if (_emptySymbols.Contains(c))
         {
             FinalizeToken(tokenBuilder);
         }
+        else if (_operators.Contains($"{c}"))
+        {
+            FinalizePrevTokenEndProcessCurrent(c, tokenBuilder);
+        }
     }
 
-    private void HandlePunctuationStart(char c, StringBuilder tokenBuilder)
+    private void FinalizePrevTokenEndProcessCurrent(char c, StringBuilder tokenBuilder)
     {
         var token = tokenBuilder.ToString();
         _tokens.Add(ParseToken(token));
