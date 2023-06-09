@@ -6,19 +6,6 @@ using SharpScript.Parser.Models.Ast.Expressions;
 
 namespace SharpScript.Evaluator;
 
-public class ScopeEnvironment
-{
-    public string Name { get; }
-    public Guid Id { get; }
-    public Dictionary<string, object?> Variables { get; } = new();
-
-    public ScopeEnvironment(string name)
-    {
-        Name = name;
-        Id = Guid.NewGuid();
-    }
-}
-
 public class ProgramEvaluator
 {
     private readonly ScopeEnvironment _globalEnvironment;
@@ -41,6 +28,7 @@ public class ProgramEvaluator
             NumberExpression numberExpression => EvaluateNumberExpression(numberExpression, envs),
             BooleanExpression booleanExpression => EvaluateBooleanExpression(booleanExpression, envs),
             StringExpression stringExpression => EvaluateStringExpression(stringExpression, envs),
+            ObjectExpression objectExpression => objectExpression.Value,
             NullExpression _ => null,
             VariableExpression variableExpression => EvaluateVariableExpression(variableExpression, envs),
             FunctionCallExpression functionCallExpression =>
@@ -51,6 +39,7 @@ public class ProgramEvaluator
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
+            FunctionDeclaration functionDeclaration => EvaluateFunctionDeclaration(functionDeclaration, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
@@ -67,11 +56,11 @@ public class ProgramEvaluator
         return result;
     }
 
-    private object? EvaluateScopedNode(ScopedNode scopedNode, List<ScopeEnvironment> environments)
+    private object? EvaluateScopedNode(ScopedNode scopedNode, IReadOnlyCollection<ScopeEnvironment> environments)
     {
         object? result = null;
 
-        var localEnv = new ScopeEnvironment($"Local_{environments.Count}");
+        var localEnv = new ScopeEnvironment($"Local_{environments.Count + 1}");
 
         var newEnvs = new List<ScopeEnvironment>(environments) { localEnv };
 
@@ -154,6 +143,38 @@ public class ProgramEvaluator
 
         return result;
     }
+    
+    private object? EvaluateFunctionDeclaration(FunctionDeclaration functionDeclaration, IReadOnlyCollection<ScopeEnvironment> envs)
+    {
+        var func = (object[] inputArgs) => DeclaredFunction(inputArgs, functionDeclaration, envs);
+        EnvironmentHelper.DeclareVariable(envs, functionDeclaration.Name, func);
+        return null;
+    }
+
+    private object? DeclaredFunction(object[] inputArgs, FunctionDeclaration functionDeclaration, IEnumerable<ScopeEnvironment> envs)
+    {
+        var args = functionDeclaration.Arguments;
+
+        var scope = new ScopeEnvironment($"Local_{functionDeclaration.Name}");
+        for (var i = 0; i < args.Count; ++i)
+        {
+            var variableName = args[i].Value;
+            // var declaration = new VariableDeclaration(variableName, new ObjectExpression(inputArgs[i]));
+            scope.Variables[variableName] = inputArgs[i];
+        }
+
+        var totalScope = new List<ScopeEnvironment>(envs) { scope };
+        var obj = Evaluate(functionDeclaration.ScopedNode, totalScope);
+
+        return obj;
+    }
+    
+    private object? EvaluateFunctionCallExpression(
+        FunctionCallExpression functionCallExpression,
+        List<ScopeEnvironment> environments)
+    {
+        return EvaluateFunctionCall(functionCallExpression.FunctionCall, environments);
+    }
 
     private object? EvaluateFunctionCall(FunctionCall functionCall, List<ScopeEnvironment> environments)
     {
@@ -167,13 +188,6 @@ public class ProgramEvaluator
         var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
 
         return del!.DynamicInvoke(new object[] { args });
-    }
-
-    private object? EvaluateFunctionCallExpression(
-        FunctionCallExpression functionCallExpression,
-        List<ScopeEnvironment> environments)
-    {
-        return EvaluateFunctionCall(functionCallExpression.FunctionCall, environments);
     }
 
     private object? EvaluateVariableAssignment(

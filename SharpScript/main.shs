@@ -1,6 +1,5 @@
-const a = null;
-a = 1;
-while a != 5 {
+function a(a) {
     print(a);
-    a = a + 1;
 }
+
+a("This is working!");

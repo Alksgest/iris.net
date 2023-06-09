@@ -5,9 +5,9 @@ namespace SharpScript.Lexer;
 
 // TODO: handle math operators +- | add more operators | add unary operators
 // TODO: add if else operators expression +- | add support for if else if
-// TODO: add true, false, null literals
-// TODO: make value generic instead of object
-// TODO: add while loop
+// TODO: add true, false, null literals +
+// TODO: make value generic instead of object +-
+// TODO: add while loop +
 // TODO: extend evaluations metadata with errors and warnings
 // TODO: handle function creation
 // TODO: handle scope creation +
@@ -24,7 +24,7 @@ public class Tokenizer
     private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}" };
 
     private readonly List<string>
-        _keyWords = new() { "const", "let", "if", "else", "true", "false", "while", "null" }; // remove const, add mut
+        _keyWords = new() { "const", "let", "if", "else", "true", "false", "while", "null", "function" }; // remove const, add mut
 
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
     private readonly List<char> _stringLiteralIdentifiers = new() { '\"' };

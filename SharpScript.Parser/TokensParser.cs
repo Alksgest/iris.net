@@ -58,14 +58,25 @@ public class TokensParser
             var node = ParseConditionalExpression();
             return node;
         }
-        
+
         if (Match(TokenType.Keyword, "while"))
         {
             _ = Expect(TokenType.Keyword, "while");
             var condition = ParseExpression();
             var body = ParseScopedNode();
-            
+
             return new WhileExpression(condition, body);
+        }
+
+        if (Match(TokenType.Keyword, "function"))
+        {
+            _ = Expect(TokenType.Keyword, "function");
+            
+            var name = Expect(TokenType.Identifier).Value;
+            var arguments = ParseFunctionArguments(); 
+            var scope = ParseScopedNode();
+
+            return new FunctionDeclaration(name, arguments, scope);
         }
 
         if (Match(TokenType.Identifier))
@@ -82,6 +93,27 @@ public class TokensParser
         }
 
         throw new Exception("Expected a statement");
+    }
+
+    private List<VariableExpression> ParseFunctionArguments()
+    {
+        _ = Expect(TokenType.Punctuation, "(");
+
+        var nodes = new List<VariableExpression>();
+        while (!Match(TokenType.Punctuation, ")"))
+        {
+            var expression = new VariableExpression(Expect(TokenType.Identifier).Value);
+            if (Match(TokenType.Punctuation, ","))
+            {
+                _ = Expect(TokenType.Punctuation, ",");
+            }
+
+            nodes.Add(expression);
+        }
+
+        _ = Expect(TokenType.Punctuation, ")");
+
+        return nodes;
     }
 
     private ConditionalExpression ParseConditionalExpression()
@@ -125,7 +157,7 @@ public class TokensParser
         {
             return ParseVariableAssignment(nameToken);
         }
-
+        
         if (Match(TokenType.Punctuation, "("))
         {
             return ParseFunctionCall(nameToken.Value);
@@ -161,7 +193,7 @@ public class TokensParser
         var value = ParseExpression();
         return new VariableAssignment(nameToken.Value, value);
     }
-
+    
     private VariableDeclaration ParseConstVariableDeclaration()
     {
         var nameToken = Expect(TokenType.Identifier);
@@ -245,7 +277,7 @@ public class TokensParser
             var value = decimal.Parse(Expect(TokenType.NumberValue).Value);
             return new NumberExpression(value);
         }
-        
+
         if (Match(TokenType.Keyword, "true") || Match(TokenType.Keyword, "false"))
         {
             var value = bool.Parse(Expect(TokenType.Keyword).Value);
@@ -257,7 +289,7 @@ public class TokensParser
             var value = Expect(TokenType.StringValue).Value;
             return new StringExpression(value);
         }
-        
+
         if (Match(TokenType.Keyword, "null"))
         {
             _ = Expect(TokenType.Keyword, "null");
@@ -308,6 +340,14 @@ public class TokensParser
         if (_currentTokenIndex >= _tokens.Count) return false;
 
         var token = _tokens[_currentTokenIndex + 1];
+        return token.Type == type && (value == null || token.Value == value);
+    }
+    
+    private bool MatchPrev(TokenType type, string? value = null)
+    {
+        if (_currentTokenIndex >= _tokens.Count) return false;
+
+        var token = _tokens[_currentTokenIndex - 1];
         return token.Type == type && (value == null || token.Value == value);
     }
 

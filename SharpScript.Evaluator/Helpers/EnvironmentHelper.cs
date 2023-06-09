@@ -4,7 +4,7 @@ internal static class EnvironmentHelper
 {
     internal static object? GetVariableValue(IEnumerable<ScopeEnvironment> environments, string name)
     {
-        var env = environments.SingleOrDefault(env => env.Variables.ContainsKey(name));
+        var env = environments.LastOrDefault(env => env.Variables.ContainsKey(name));
 
         if (env == null)
         {

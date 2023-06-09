@@ -101,3 +101,16 @@ while(a > 5) {
 
 let b = false;
 print(true || false);
+
+const a = null;
+a = 1;
+while a != 5 {
+    print(a);
+    a = a + 1;
+}
+
+function a(a) {
+    print(a);
+}
+
+a("This is working!");
