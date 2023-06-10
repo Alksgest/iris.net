@@ -120,7 +120,9 @@ public class TokensParser
 
     private PropertyExpression ParsePropertyExpression(Token nameToken)
     {
-        NodeExpression node = null;
+        var propertyExpression = new PropertyExpression(nameToken.Value);
+        
+        Node? node = null;
 
         if (Match(TokenType.Punctuation, "."))
         {
@@ -128,11 +130,32 @@ public class TokensParser
 
             if (Match(TokenType.Identifier))
             {
-                node = ParseExpression();
+                var token = Expect(TokenType.Identifier);
+               node = ParsePropertyIdentifierExpression(token);
             }
         }
 
-        return new PropertyExpression(nameToken.Value, node);
+        propertyExpression.NestedNode = node;
+        return propertyExpression;
+    }
+    
+    private NodeExpression ParsePropertyIdentifierExpression(Token token)
+    {
+        while (Match(TokenType.Punctuation, "."))
+        {
+            _ = Expect(TokenType.Punctuation, ".");
+            var nameToken = Expect(TokenType.Identifier);
+            var propertyExpression = ParsePropertyExpression(nameToken);
+            return propertyExpression;
+        }
+
+        if (Match(TokenType.Punctuation, "("))
+        {
+            var functionCall = ParseFunctionCall(token.Value);
+            return new FunctionCallExpression(token.Value, functionCall);
+        }
+        
+        return new PropertyIdentifierExpression(token.Value);
     }
 
     private NodeExpression ParseStartOfSquareBracket()
@@ -397,13 +420,21 @@ public class TokensParser
 
                 return new FunctionCallExpression(token, functionCall);
             }
+            
+            // if (MatchPrev(TokenType.Punctuation, "."))
+            // {
+            //     var token = Expect(TokenType.Identifier);
+            //     var propertyExpression = ParsePropertyIdentifierExpression(token);
+            //     // var propertyExpression = ParseExpression();
+            //     return propertyExpression;
+            // }
 
             return new VariableExpression(Expect(TokenType.Identifier).Value);
         }
 
         throw new Exception("Unexpected expression");
     }
-
+    
     private static int GetPrecedence(Token op)
     {
         switch (op.Value)

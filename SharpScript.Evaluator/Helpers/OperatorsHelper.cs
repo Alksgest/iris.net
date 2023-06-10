@@ -28,6 +28,12 @@ public static class OperatorsHelper
         return l && r;
     }
 
+    internal static decimal Reminder(object? left, object? right)
+    {
+        var (l, r) = ConvertOperands<decimal>(left, right);
+        return l % r;
+    }
+
     internal static bool GreaterThen(object? left, object? right, bool orEqual = false)
     {
         if (left?.GetType() != right?.GetType())

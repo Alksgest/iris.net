@@ -4,7 +4,7 @@ public class PrimitiveValueInScope<T> : ObjectInScope where T : notnull
 {
     public T Value => (T)Object;
 
-    public PrimitiveValueInScope(T value) : base(value)
+    public PrimitiveValueInScope(T value, string name) : base(value, name)
     {
     }
 }

@@ -80,7 +80,7 @@ public class ProgramEvaluator
 
         return result;
     }
-    
+
     private object? EvaluateBreakableScopeNode(
         ScopedNode scopedNode,
         IReadOnlyCollection<ScopeEnvironment> environments)
@@ -97,6 +97,7 @@ public class ProgramEvaluator
             {
                 return new BreakCommand();
             }
+
             result = Evaluate(statement, newEnvs);
         }
 
@@ -116,6 +117,7 @@ public class ProgramEvaluator
             {
                 break;
             }
+
             condition = (bool)Evaluate(whileExpression.Condition, envs);
         }
 
@@ -148,7 +150,7 @@ public class ProgramEvaluator
         // Make it recursive like getting calculating first property, second and so on
         var (path, type) = GetFullPath(propertyExpression, "");
 
-        if (type == typeof(VariableExpression))
+        if (type == typeof(PropertyIdentifierExpression))
         {
             return ObjectHelper.GetPropertyValue(objectInScope!, path, propertyExpression.VariableName);
         }
@@ -173,6 +175,7 @@ public class ProgramEvaluator
     {
         var (furtherPath, leafType) = propertyExpression.NestedNode switch
         {
+            PropertyIdentifierExpression e => (e.Value, typeof(PropertyIdentifierExpression)),
             VariableExpression e => (e.Value, typeof(VariableExpression)),
             FunctionCallExpression f => (f.Value, typeof(FunctionCallExpression)),
             PropertyExpression p => GetFullPath(p, $"{p.VariableName}"),
@@ -222,6 +225,7 @@ public class ProgramEvaluator
             "!=" => OperatorsHelper.NotEqual(left, right),
             "&&" => OperatorsHelper.LogicalAnd(left, right),
             "||" => OperatorsHelper.LogicalOr(left, right),
+            "%" => OperatorsHelper.Reminder(left, right),
             _ => throw new ArgumentException($"{binaryExpression.Operator} is not accepted binary operator")
         };
 

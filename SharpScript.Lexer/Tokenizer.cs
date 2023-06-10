@@ -3,23 +3,24 @@ using SharpScript.Lexer.Models;
 
 namespace SharpScript.Lexer;
 
-// TODO: handle math operators +- | add more operators | add unary operators
+// TODO: add operators +=, -=, *=, /=, %=
+// TODO: handle operators &, |, >>, <<
+// TODO: handle math operators ++
 // TODO: add if else operators expression +- | add support for if else if
 // TODO: add true, false, null literals +
-// TODO: make value generic instead of object +-
+// TODO: make value generic instead of object +
 // TODO: add while loop +
 // TODO: extend evaluations metadata with errors and warnings
-// TODO: handle function creation
+// TODO: handle function creation +
 // TODO: handle scope creation +
 // TODO: handle immutability (let mut)
-// TODO: add data structures as array, dict, object, class
+// TODO: add data structures as array, dict, object, class +---
 public class Tokenizer
 {
     private List<Token> _tokens = new();
 
-    // TODO: add support for binary operators
     private readonly List<string> _operators = new()
-        { "=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|" };
+        { "=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|", "%" };
 
     private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}", "[", "]", "." };
 
@@ -143,7 +144,6 @@ public class Tokenizer
     {
         if (_punctuations.Contains($"{c}"))
         {
-            // tokenBuilder.Append(c);
             FinalizeToken(tokenBuilder);
         }
         else if (_emptySymbols.Contains(c))

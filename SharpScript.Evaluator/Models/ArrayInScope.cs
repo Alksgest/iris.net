@@ -8,14 +8,33 @@ public class ArrayInScope : ObjectInScope
 
     [NestedProperty(Name = "length")] public decimal Length => Value.Count;
 
-    public ArrayInScope(List<object> value) : base(value)
+    public ArrayInScope(List<object> value, string name) : base(value, name)
     {
     }
 
     [NestedMethod(Name = "get")]
-    public object ElementAt(decimal index)
+    public object GetElementAt(decimal index)
     {
         var i = (int)index;
         return Value[i];
+    }
+
+    [NestedMethod(Name = "set")]
+    public void SetElementAt(decimal index, object value)
+    {
+        var i = (int)index;
+        Value[i] = value;
+    }
+
+    [NestedMethod(Name = "add")]
+    public void Add(object value)
+    {
+        Value.Add(value);
+    }
+    
+    [NestedMethod(Name = "makeCopy")]
+    public List<object> MakeCopy()
+    {
+        return new List<object>(Value);
     }
 }

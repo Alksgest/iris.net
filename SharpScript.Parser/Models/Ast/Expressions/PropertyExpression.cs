@@ -6,9 +6,9 @@ public class PropertyExpression : NodeExpression
 {
     //TODO: For now we can call properties only from variables
     public string VariableName { get; set; }
-    public NodeExpression NestedNode { get; set; }
+    public Node? NestedNode { get; set; }
 
-    public PropertyExpression(string variableName, NodeExpression nestedNode) : base(nameof(PropertyExpression))
+    public PropertyExpression(string variableName, Node? nestedNode = null) : base(nameof(PropertyExpression))
     {
         VariableName = variableName;
         NestedNode = nestedNode;

@@ -6,7 +6,7 @@ public class MethodInScope : ObjectInScope
 {
     public MethodInfo Value => (MethodInfo)Object;
 
-    public MethodInScope(MethodInfo value) : base(value)
+    public MethodInScope(MethodInfo value, string name) : base(value, name)
     {
     }
 }
