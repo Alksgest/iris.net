@@ -21,7 +21,7 @@ public class Tokenizer
     private readonly List<string> _operators = new()
         { "=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|" };
 
-    private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}" };
+    private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}", "[", "]" };
 
     private readonly List<string>
         _keyWords = new() { "const", "let", "if", "else", "true", "false", "while", "null", "function" }; // remove const, add mut
@@ -30,8 +30,7 @@ public class Tokenizer
     private readonly List<char> _stringLiteralIdentifiers = new() { '\"' };
 
     private TokenizerState _tokenizerState = TokenizerState.Start;
-
-    // const a = 5 
+    
     public List<Token> Process(string input)
     {
         var tokenBuilder = new StringBuilder();

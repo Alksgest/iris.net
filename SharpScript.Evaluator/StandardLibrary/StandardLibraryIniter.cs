@@ -35,15 +35,6 @@ public static class StandardLibraryInitializer
                 var methodAnnotation =
                     method.GetCustomAttribute(typeof(StandardLibraryMethodAttribute)) as StandardLibraryMethodAttribute;
 
-                // var parameters = method
-                //     .GetParameters()
-                //     .Select(p => Expression.Parameter(p.ParameterType, p.Name))
-                //     .ToArray();
-                // var call = Expression.Call(method, parameters);
-                // var lambda = Expression.Lambda(call, parameters);
-                //
-                // var del = lambda.Compile();
-
                 EnvironmentHelper.DeclareVariable(environments, methodAnnotation!.Name, method);
             }
         }

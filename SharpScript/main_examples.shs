@@ -108,3 +108,5 @@ function a(a) {
 }
 
 a("This is working!");
+
+const a = [1, 2, 3];

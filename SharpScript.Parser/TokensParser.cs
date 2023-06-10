@@ -71,9 +71,9 @@ public class TokensParser
         if (Match(TokenType.Keyword, "function"))
         {
             _ = Expect(TokenType.Keyword, "function");
-            
+
             var name = Expect(TokenType.Identifier).Value;
-            var arguments = ParseFunctionArguments(); 
+            var arguments = ParseFunctionArguments();
             var scope = ParseScopedNode();
 
             return new FunctionDeclaration(name, arguments, scope);
@@ -92,7 +92,27 @@ public class TokensParser
             return node;
         }
 
+        if (Match(TokenType.Punctuation, "["))
+        {
+            var node = ParseStartOfSquareBracket();
+            _ = Expect(TokenType.Punctuation, ";");
+            return node;
+        }
+
         throw new Exception("Expected a statement");
+    }
+
+    private NodeExpression ParseStartOfSquareBracket()
+    {
+        if (
+            _currentTokenIndex == 0 ||
+            MatchPrev(TokenType.Punctuation, ";") ||
+            MatchPrev(TokenType.Punctuation, "}"))
+        {
+            return ParseArrayExpression();
+        }
+
+        throw new Exception("Unexpected usage of []");
     }
 
     private List<VariableExpression> ParseFunctionArguments()
@@ -157,7 +177,7 @@ public class TokensParser
         {
             return ParseVariableAssignment(nameToken);
         }
-        
+
         if (Match(TokenType.Punctuation, "("))
         {
             return ParseFunctionCall(nameToken.Value);
@@ -193,7 +213,7 @@ public class TokensParser
         var value = ParseExpression();
         return new VariableAssignment(nameToken.Value, value);
     }
-    
+
     private VariableDeclaration ParseConstVariableDeclaration()
     {
         var nameToken = Expect(TokenType.Identifier);
@@ -227,10 +247,15 @@ public class TokensParser
 
         while (true)
         {
-            var op = _tokens[_currentTokenIndex];
             if (Match(TokenType.Punctuation))
             {
                 break;
+            }
+
+            var op = _tokens[_currentTokenIndex];
+            if (!Match(TokenType.Operator))
+            {
+                throw new ArgumentException($"Invalid operator. Got {op}");
             }
 
             var precedence = GetPrecedence(op);
@@ -258,6 +283,12 @@ public class TokensParser
             return expr;
         }
 
+        if (Match(TokenType.Punctuation, "["))
+        {
+            var node = ParseArrayExpression();
+            return node;
+        }
+
         if (Match(TokenType.Operator, "-") || Match(TokenType.Operator, "!"))
         {
             var op = Expect(TokenType.Operator).Value;
@@ -268,6 +299,27 @@ public class TokensParser
         }
 
         return ParsePrimary();
+    }
+
+    private ArrayExpression ParseArrayExpression()
+    {
+        _ = Expect(TokenType.Punctuation, "[");
+        var elements = new List<NodeExpression>();
+        while (!Match(TokenType.Punctuation, "]"))
+        {
+            var expr = ParseExpression();
+            elements.Add(expr);
+
+            if (Match(TokenType.Punctuation, ","))
+            {
+                _ = Expect(TokenType.Punctuation, ",");
+            }
+        }
+
+        _ = Expect(TokenType.Punctuation, "]");
+        var arrayExpression = new ArrayExpression(elements);
+
+        return arrayExpression;
     }
 
     private NodeExpression ParsePrimary()
@@ -342,7 +394,7 @@ public class TokensParser
         var token = _tokens[_currentTokenIndex + 1];
         return token.Type == type && (value == null || token.Value == value);
     }
-    
+
     private bool MatchPrev(TokenType type, string? value = null)
     {
         if (_currentTokenIndex >= _tokens.Count) return false;

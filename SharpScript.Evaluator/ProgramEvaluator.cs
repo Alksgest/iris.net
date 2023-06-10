@@ -29,9 +29,9 @@ public class ProgramEvaluator
             RootNode program => EvaluateProgram(program, envs),
             VariableDeclaration variableDeclaration => EvaluateVariableDeclaration(variableDeclaration, envs),
             VariableAssignment variableAssignment => EvaluateVariableAssignment(variableAssignment, envs),
-            NumberExpression numberExpression => EvaluateNumberExpression(numberExpression, envs),
-            BooleanExpression booleanExpression => EvaluateBooleanExpression(booleanExpression, envs),
-            StringExpression stringExpression => EvaluateStringExpression(stringExpression, envs),
+            NumberExpression numberExpression => EvaluateNumberExpression(numberExpression),
+            BooleanExpression booleanExpression => EvaluateBooleanExpression(booleanExpression),
+            StringExpression stringExpression => EvaluateStringExpression(stringExpression),
             ObjectExpression objectExpression => objectExpression.Value,
             NullExpression _ => null,
             VariableExpression variableExpression => EvaluateVariableExpression(variableExpression, envs),
@@ -40,6 +40,7 @@ public class ProgramEvaluator
             FunctionCall functionCall => EvaluateFunctionCall(functionCall, envs),
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression, envs),
             UnaryExpression unaryExpression => EvaluateUnaryExpression(unaryExpression, envs),
+            ArrayExpression arrayExpression => EvaluateArrayExpression(arrayExpression, envs),
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
@@ -107,6 +108,13 @@ public class ProgramEvaluator
         }
 
         return null;
+    }
+
+    private object EvaluateArrayExpression(ArrayExpression arrayExpression, List<ScopeEnvironment> envs)
+    {
+        var elements = arrayExpression.Value.Select((el) => Evaluate(el, envs));
+
+        return new List<object?>(elements);
     }
 
     private object? EvaluateUnaryExpression(UnaryExpression unaryExpression, List<ScopeEnvironment> envs)
@@ -190,9 +198,9 @@ public class ProgramEvaluator
         ThrowHelper.ThrowIfNotCallable(environments, funcName);
 
         var func = EnvironmentHelper.GetVariableValue(environments, funcName);
-        
+
         var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
-        
+
         if (func is MethodInfo method)
         {
             var parameterInfos = method.GetParameters();
@@ -205,18 +213,30 @@ public class ProgramEvaluator
                 }
             }
             
+            var theLastParam = parameterInfos[^1];
+            var paramAttribute = theLastParam
+                .CustomAttributes
+                .SingleOrDefault(el => el.AttributeType == typeof(ParamArrayAttribute));
+
+            if (paramAttribute != null)
+            {
+                // var lastArgs = args[^1];
+                // if (lastArgs is List<object> l)
+                // {
+                //     args[^1] = l.ToArray();
+                // }
+
+                var newArgs = new object[]{ args.ToArray() };
+                return method.Invoke(null, newArgs);
+            }
+
             return method.Invoke(null, args.ToArray());
-        } 
-        
-        // This mean declared function from soruce code
+        }
+
+        // This mean declared function from source code
         var del = func as Delegate;
 
         return del.DynamicInvoke(args);
-    }
-
-    private object[] ParseArguments()
-    {
-        return new[] { new object() };
     }
 
     private object? EvaluateVariableAssignment(
@@ -245,23 +265,17 @@ public class ProgramEvaluator
         return value;
     }
 
-    private static decimal EvaluateNumberExpression(
-        PrimaryExpression<decimal> numberExpression,
-        List<ScopeEnvironment> environments)
+    private static decimal EvaluateNumberExpression(PrimaryExpression<decimal> numberExpression)
     {
         return numberExpression.Value;
     }
 
-    private static bool EvaluateBooleanExpression(
-        PrimaryExpression<bool> booleanExpression,
-        List<ScopeEnvironment> environments)
+    private static bool EvaluateBooleanExpression(PrimaryExpression<bool> booleanExpression)
     {
         return booleanExpression.Value;
     }
 
-    private static string EvaluateStringExpression(
-        PrimaryExpression<string> stringExpression,
-        List<ScopeEnvironment> environments)
+    private static string EvaluateStringExpression(PrimaryExpression<string> stringExpression)
     {
         return stringExpression.Value[1..^1];
     }
