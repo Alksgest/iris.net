@@ -81,6 +81,14 @@ public class TokensParser
 
         if (Match(TokenType.Identifier))
         {
+            if (MatchNext(TokenType.Punctuation, "."))
+            {
+                var nameToken = Expect(TokenType.Identifier);
+                var propertyExpression = ParsePropertyExpression(nameToken);
+                _ = Expect(TokenType.Punctuation, ";");
+                return propertyExpression;
+            }
+            
             var node = ParseIdentifierExpression();
             _ = Expect(TokenType.Punctuation, ";");
             return node;
@@ -100,6 +108,24 @@ public class TokensParser
         }
 
         throw new Exception("Expected a statement");
+    }
+
+    private PropertyExpression ParsePropertyExpression(Token nameToken)
+    {
+        var variableExpression = new VariableExpression(nameToken.Value);
+        var propertyExpression = new PropertyExpression(variableExpression);
+
+        if (Match(TokenType.Punctuation, "."))
+        {
+            _ = Expect(TokenType.Punctuation, ".");
+
+            if (Match(TokenType.Identifier))
+            {
+                propertyExpression.NestedNode = ParseExpression();
+            }
+        }
+
+        return propertyExpression;
     }
 
     private NodeExpression ParseStartOfSquareBracket()
@@ -288,6 +314,13 @@ public class TokensParser
             var node = ParseArrayExpression();
             return node;
         }
+        
+        if (MatchNext(TokenType.Punctuation, "."))
+        {
+            var token = Expect(TokenType.Identifier);
+            var propertyExpression = ParsePropertyExpression(token);
+            return propertyExpression;
+        }
 
         if (Match(TokenType.Operator, "-") || Match(TokenType.Operator, "!"))
         {
@@ -410,6 +443,7 @@ public class TokensParser
             return _tokens[_currentTokenIndex++];
         }
 
-        throw new Exception($"Expected token {type} but got {_tokens[_currentTokenIndex].Type}");
+        throw new Exception(
+            $"Expected token {type} with value {value} but got {_tokens[_currentTokenIndex].Type} with value {_tokens[_currentTokenIndex].Value}");
     }
 }

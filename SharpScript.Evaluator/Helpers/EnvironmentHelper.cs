@@ -1,3 +1,4 @@
+using System.Reflection;
 using SharpScript.Evaluator.Models;
 
 namespace SharpScript.Evaluator.Helpers;
@@ -13,10 +14,11 @@ internal static class EnvironmentHelper
             throw new Exception($"Variable {name} is not declared");
         }
 
-        return env.Variables[name];
+        return env.Variables[name].Object;
     }
 
-    internal static void SetVariableValue(IEnumerable<ScopeEnvironment> environments, string name, object? value)
+    // TODO: add additional type?
+    internal static void SetVariableValue(IEnumerable<ScopeEnvironment> environments, string name, object value)
     {
         var env = environments.SingleOrDefault(env => env.Variables.ContainsKey(name));
 
@@ -24,8 +26,8 @@ internal static class EnvironmentHelper
         {
             throw new Exception($"Variable {name} is declared");
         }
-        
-        env.Variables[name] = value;
+
+        CreateObjectInScope(env, name, value);
     }
     
     internal static void DeclareVariable(List<ScopeEnvironment> envs, string name, object? value)
@@ -35,10 +37,26 @@ internal static class EnvironmentHelper
         if (env == null)
         {
             var lastEnv = envs.Last();
-            lastEnv.Variables[name] = value;
+            CreateObjectInScope(lastEnv, name, value);
             return;
         }
         
-        env.Variables[name] = value; //TODO: probably mistake, exception should be thrown
+        //TODO: debug this line
+        CreateObjectInScope(env, name, value);//TODO: probably mistake, exception should be thrown
+    }
+
+    private static void CreateObjectInScope(ScopeEnvironment scope, string name, object? value)
+    {
+        ObjectInScope? objectInScope = value switch
+        {
+            string str => new PrimitiveValueInScope<string>(str),
+            decimal d => new PrimitiveValueInScope<decimal>(d),
+            bool b => new PrimitiveValueInScope<bool>(b),
+            Delegate del => new DelegateInScope(del),
+            MethodInfo m => new MethodInScope(m),
+            _ => null
+        };
+        
+        scope.Variables[name] = objectInScope;
     }
 }

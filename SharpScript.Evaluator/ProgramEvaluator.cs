@@ -117,7 +117,7 @@ public class ProgramEvaluator
         return new List<object?>(elements);
     }
 
-    private object? EvaluateUnaryExpression(UnaryExpression unaryExpression, List<ScopeEnvironment> envs)
+    private object EvaluateUnaryExpression(UnaryExpression unaryExpression, List<ScopeEnvironment> envs)
     {
         var left = Evaluate(unaryExpression.Left, envs)!;
 
@@ -133,8 +133,8 @@ public class ProgramEvaluator
 
     private object? EvaluateBinaryExpression(BinaryExpression binaryExpression, List<ScopeEnvironment> environments)
     {
-        var left = Evaluate(binaryExpression.Left, environments);
-        var right = Evaluate(binaryExpression.Right, environments);
+        var left = Evaluate(binaryExpression.Left, environments) ;
+        var right = Evaluate(binaryExpression.Right, environments) ;
 
         object result = binaryExpression.Operator switch
         {
@@ -160,12 +160,14 @@ public class ProgramEvaluator
         FunctionDeclaration functionDeclaration,
         List<ScopeEnvironment> envs)
     {
-        var func = (object[] inputArgs) => DeclaredFunction(inputArgs, functionDeclaration, envs);
+        var func = (object[] inputArgs) => DeclareFunction(inputArgs, functionDeclaration, envs);
         EnvironmentHelper.DeclareVariable(envs, functionDeclaration.Name, func);
         return null;
     }
 
-    private object? DeclaredFunction(object[] inputArgs, FunctionDeclaration functionDeclaration,
+    private object? DeclareFunction(
+        object[] inputArgs,
+        FunctionDeclaration functionDeclaration,
         IEnumerable<ScopeEnvironment> envs)
     {
         var args = functionDeclaration.Arguments;
@@ -174,8 +176,9 @@ public class ProgramEvaluator
         for (var i = 0; i < args.Count; ++i)
         {
             var variableName = args[i].Value;
+            EnvironmentHelper.SetVariableValue(new[] { scope }, variableName, inputArgs[i]);
             // var declaration = new VariableDeclaration(variableName, new ObjectExpression(inputArgs[i]));
-            scope.Variables[variableName] = inputArgs[i];
+            // scope.Variables[variableName] = inputArgs[i];
         }
 
         var totalScope = new List<ScopeEnvironment>(envs) { scope };
@@ -224,10 +227,10 @@ public class ProgramEvaluator
                 var normalArguments = argsArray[..(parameterInfos.Length - 1)];
                 var prms = argsArray[(parameterInfos.Length - 1)..args.Count];
                 var newArgs = new object[normalArguments.Length + 1];
-                
+
                 normalArguments.CopyTo(newArgs, 0);
                 newArgs[^1] = prms;
-                
+
                 return method.Invoke(null, newArgs);
             }
 
@@ -237,7 +240,7 @@ public class ProgramEvaluator
         // This mean declared function from source code
         var del = func as Delegate;
 
-        return del.DynamicInvoke(args);
+        return del?.DynamicInvoke(args);
     }
 
     private object? EvaluateVariableAssignment(
