@@ -1,5 +1,5 @@
-using System.Globalization;
 using System.Reflection;
+using SharpScript.Evaluator.Commands;
 using SharpScript.Evaluator.Helpers;
 using SharpScript.Evaluator.Models;
 using SharpScript.Evaluator.StandardLibrary;
@@ -41,6 +41,7 @@ public class ProgramEvaluator
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression, envs),
             UnaryExpression unaryExpression => EvaluateUnaryExpression(unaryExpression, envs),
             ArrayExpression arrayExpression => EvaluateArrayExpression(arrayExpression, envs),
+            BreakableScopeNode breakableScopeNode => EvaluateBreakableScopeNode(breakableScopeNode, envs),
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
@@ -79,6 +80,30 @@ public class ProgramEvaluator
 
         return result;
     }
+    
+    private object? EvaluateBreakableScopeNode(
+        ScopedNode scopedNode,
+        IReadOnlyCollection<ScopeEnvironment> environments)
+    {
+        object? result = null;
+
+        var localEnv = new ScopeEnvironment($"Local_{environments.Count + 1}");
+
+        var newEnvs = new List<ScopeEnvironment>(environments) { localEnv };
+
+        foreach (var statement in scopedNode.Statements)
+        {
+            if (statement is BreakExpression)
+            {
+                return new BreakCommand();
+            }
+            result = Evaluate(statement, newEnvs);
+        }
+
+        newEnvs.Clear();
+
+        return result;
+    }
 
     private object? EvaluateWhileExpression(WhileExpression whileExpression, List<ScopeEnvironment> envs)
     {
@@ -86,7 +111,11 @@ public class ProgramEvaluator
         var condition = (bool)Evaluate(whileExpression.Condition, envs);
         while (condition)
         {
-            _ = Evaluate(whileExpression.Body, envs);
+            var result = Evaluate(whileExpression.Body, envs);
+            if (result is BreakCommand)
+            {
+                break;
+            }
             condition = (bool)Evaluate(whileExpression.Condition, envs);
         }
 
@@ -220,8 +249,6 @@ public class ProgramEvaluator
         {
             var variableName = args[i].Value;
             EnvironmentHelper.DeclareVariable(new[] { scope }, variableName, inputArgs[i]);
-            // var declaration = new VariableDeclaration(variableName, new ObjectExpression(inputArgs[i]));
-            // scope.Variables[variableName] = inputArgs[i];
         }
 
         var totalScope = new List<ScopeEnvironment>(envs) { scope };

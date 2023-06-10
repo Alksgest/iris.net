@@ -7,4 +7,9 @@ public class ScopedNode : Node
     public ScopedNode() : base(nameof(ScopedNode))
     {
     }
+
+    protected ScopedNode(string name): base(name)
+    {
+        
+    }
 }

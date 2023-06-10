@@ -63,9 +63,17 @@ public class TokensParser
         {
             _ = Expect(TokenType.Keyword, "while");
             var condition = ParseExpression();
-            var body = ParseScopedNode();
+            var body = ParseScopedNode(true) as BreakableScopeNode;
 
-            return new WhileExpression(condition, body);
+            return new WhileExpression(condition, body!);
+        }
+        
+        if (Match(TokenType.Keyword, "break"))
+        {
+            _ = Expect(TokenType.Keyword, "break");
+            _ = Expect(TokenType.Punctuation, ";");
+            
+            return new BreakExpression();
         }
 
         if (Match(TokenType.Keyword, "function"))
@@ -177,11 +185,11 @@ public class TokensParser
         return new ConditionalExpression(condition, trueStatement, falseStatement);
     }
 
-    private ScopedNode ParseScopedNode()
+    private ScopedNode ParseScopedNode(bool isBreakable = false)
     {
         _ = Expect(TokenType.Punctuation, "{");
 
-        var scopedNode = new ScopedNode();
+        var scopedNode = isBreakable ? new BreakableScopeNode() : new ScopedNode();
 
         while (!Match(TokenType.Punctuation, "}"))
         {

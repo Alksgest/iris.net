@@ -24,13 +24,16 @@ public class Tokenizer
     private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}", "[", "]", "." };
 
     private readonly List<string>
-        _keyWords = new() { "const", "let", "if", "else", "true", "false", "while", "null", "function" }; // remove const, add mut
+        _keyWords = new()
+        {
+            "const", "let", "if", "else", "true", "false", "while", "null", "function", "break"
+        }; // remove const, add mut
 
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
     private readonly List<char> _stringLiteralIdentifiers = new() { '\"' };
 
     private TokenizerState _tokenizerState = TokenizerState.Start;
-    
+
     public List<Token> Process(string input)
     {
         var tokenBuilder = new StringBuilder();
