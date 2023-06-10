@@ -212,25 +212,26 @@ public class ProgramEvaluator
                     args.Add(parameterInfos[i].DefaultValue);
                 }
             }
-            
+
             var theLastParam = parameterInfos[^1];
             var paramAttribute = theLastParam
                 .CustomAttributes
                 .SingleOrDefault(el => el.AttributeType == typeof(ParamArrayAttribute));
 
+            var argsArray = args.ToArray();
             if (paramAttribute != null)
             {
-                // var lastArgs = args[^1];
-                // if (lastArgs is List<object> l)
-                // {
-                //     args[^1] = l.ToArray();
-                // }
-
-                var newArgs = new object[]{ args.ToArray() };
+                var normalArguments = argsArray[..(parameterInfos.Length - 1)];
+                var prms = argsArray[(parameterInfos.Length - 1)..args.Count];
+                var newArgs = new object[normalArguments.Length + 1];
+                
+                normalArguments.CopyTo(newArgs, 0);
+                newArgs[^1] = prms;
+                
                 return method.Invoke(null, newArgs);
             }
 
-            return method.Invoke(null, args.ToArray());
+            return method.Invoke(null, argsArray);
         }
 
         // This mean declared function from source code
