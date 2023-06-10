@@ -1,3 +1,12 @@
-const a = 5;
-const b = 3;
-print(a + b);
+const arr = [6, 4, 8];
+const index = 0;
+
+function printArrayElement(arr, index) {
+    const value = arr.get(index);
+    print(value);
+}
+
+while(index != arr.length) {
+    printArrayElement(arr, index);
+    index = index + 1;
+}

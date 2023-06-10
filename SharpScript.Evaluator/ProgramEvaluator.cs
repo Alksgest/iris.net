@@ -45,6 +45,7 @@ public class ProgramEvaluator
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
             FunctionDeclaration functionDeclaration => EvaluateFunctionDeclaration(functionDeclaration, envs),
+            PropertyExpression propertyExpression => EvaluatePropertyExpression(propertyExpression, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
@@ -110,6 +111,48 @@ public class ProgramEvaluator
         return null;
     }
 
+    private object? EvaluatePropertyExpression(
+        PropertyExpression propertyExpression,
+        List<ScopeEnvironment> envs)
+    {
+        var objectInScope = EnvironmentHelper.GetVariableInScope(envs, propertyExpression.VariableName);
+        // Make it recursive like getting calculating first property, second and so on
+        var (path, type) = GetFullPath(propertyExpression, "");
+
+        if (type == typeof(VariableExpression))
+        {
+            return ObjectHelper.GetPropertyValue(objectInScope!, path, propertyExpression.VariableName);
+        }
+
+        if (type == typeof(FunctionCallExpression))
+        {
+            var expr = propertyExpression.NestedNode as FunctionCallExpression;
+            var method = ObjectHelper.GetNestedMethod(objectInScope!, path, propertyExpression.VariableName);
+
+            var args = EvaluateCallArguments(
+                expr!.FunctionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
+                envs);
+
+            var result = CallFunctionWithArguments(method, args, objectInScope);
+            return result;
+        }
+
+        return null;
+    }
+
+    private static (string, Type) GetFullPath(PropertyExpression propertyExpression, string currentPath)
+    {
+        var (furtherPath, leafType) = propertyExpression.NestedNode switch
+        {
+            VariableExpression e => (e.Value, typeof(VariableExpression)),
+            FunctionCallExpression f => (f.Value, typeof(FunctionCallExpression)),
+            PropertyExpression p => GetFullPath(p, $"{p.VariableName}"),
+            _ => throw new ArgumentOutOfRangeException(nameof(propertyExpression.NestedNode))
+        };
+
+        return ($"{currentPath}.{furtherPath}", leafType);
+    }
+
     private object EvaluateArrayExpression(ArrayExpression arrayExpression, List<ScopeEnvironment> envs)
     {
         var elements = arrayExpression.Value.Select((el) => Evaluate(el, envs));
@@ -133,8 +176,8 @@ public class ProgramEvaluator
 
     private object? EvaluateBinaryExpression(BinaryExpression binaryExpression, List<ScopeEnvironment> environments)
     {
-        var left = Evaluate(binaryExpression.Left, environments) ;
-        var right = Evaluate(binaryExpression.Right, environments) ;
+        var left = Evaluate(binaryExpression.Left, environments);
+        var right = Evaluate(binaryExpression.Right, environments);
 
         object result = binaryExpression.Operator switch
         {
@@ -176,7 +219,7 @@ public class ProgramEvaluator
         for (var i = 0; i < args.Count; ++i)
         {
             var variableName = args[i].Value;
-            EnvironmentHelper.SetVariableValue(new[] { scope }, variableName, inputArgs[i]);
+            EnvironmentHelper.DeclareVariable(new[] { scope }, variableName, inputArgs[i]);
             // var declaration = new VariableDeclaration(variableName, new ObjectExpression(inputArgs[i]));
             // scope.Variables[variableName] = inputArgs[i];
         }
@@ -204,9 +247,19 @@ public class ProgramEvaluator
 
         var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
 
+        return CallFunctionWithArguments(func, args);
+    }
+
+    private static object? CallFunctionWithArguments(object? func, List<object?> args, object? self = null)
+    {
         if (func is MethodInfo method)
         {
             var parameterInfos = method.GetParameters();
+
+            if (parameterInfos.Length == 0)
+            {
+                return method.Invoke(self, null);
+            }
 
             if (args.Count < parameterInfos.Length)
             {
@@ -231,16 +284,16 @@ public class ProgramEvaluator
                 normalArguments.CopyTo(newArgs, 0);
                 newArgs[^1] = prms;
 
-                return method.Invoke(null, newArgs);
+                return method.Invoke(self, newArgs);
             }
 
-            return method.Invoke(null, argsArray);
+            return method.Invoke(self, argsArray);
         }
 
         // This mean declared function from source code
         var del = func as Delegate;
 
-        return del?.DynamicInvoke(args);
+        return del?.DynamicInvoke(new object?[] { args.ToArray() });
     }
 
     private object? EvaluateVariableAssignment(

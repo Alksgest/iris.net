@@ -14,7 +14,19 @@ internal static class EnvironmentHelper
             throw new Exception($"Variable {name} is not declared");
         }
 
-        return env.Variables[name].Object;
+        return env.Variables[name]?.Object;
+    }
+    
+    internal static ObjectInScope? GetVariableInScope(IEnumerable<ScopeEnvironment> environments, string name)
+    {
+        var env = environments.LastOrDefault(env => env.Variables.ContainsKey(name));
+
+        if (env == null)
+        {
+            throw new Exception($"Variable {name} is not declared");
+        }
+
+        return env.Variables[name];
     }
 
     // TODO: add additional type?
@@ -24,19 +36,21 @@ internal static class EnvironmentHelper
 
         if (env == null)
         {
-            throw new Exception($"Variable {name} is declared");
+            throw new Exception($"Variable {name} is not declared");
         }
 
         CreateObjectInScope(env, name, value);
     }
     
-    internal static void DeclareVariable(List<ScopeEnvironment> envs, string name, object? value)
+    internal static void DeclareVariable(IEnumerable<ScopeEnvironment> envs, string name, object? value)
     {
-        var env = envs.SingleOrDefault(env => env.Variables.ContainsKey(name));
+        var environments = envs.ToList();
+
+        var env = environments.SingleOrDefault(env => env.Variables.ContainsKey(name));
 
         if (env == null)
         {
-            var lastEnv = envs.Last();
+            var lastEnv = environments.Last();
             CreateObjectInScope(lastEnv, name, value);
             return;
         }
@@ -54,6 +68,7 @@ internal static class EnvironmentHelper
             bool b => new PrimitiveValueInScope<bool>(b),
             Delegate del => new DelegateInScope(del),
             MethodInfo m => new MethodInScope(m),
+            List<object> l => new ArrayInScope(l),
             _ => null
         };
         

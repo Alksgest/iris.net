@@ -113,3 +113,8 @@ const a = [1, 2, 3];
 
 const arr = [1, 2, 3];
 print(arr.length());
+
+
+const arr = [1, 2, 3];
+print(arr);
+print("Array length:", arr.length);

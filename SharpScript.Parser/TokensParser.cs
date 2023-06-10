@@ -88,7 +88,7 @@ public class TokensParser
                 _ = Expect(TokenType.Punctuation, ";");
                 return propertyExpression;
             }
-            
+
             var node = ParseIdentifierExpression();
             _ = Expect(TokenType.Punctuation, ";");
             return node;
@@ -112,8 +112,7 @@ public class TokensParser
 
     private PropertyExpression ParsePropertyExpression(Token nameToken)
     {
-        var variableExpression = new VariableExpression(nameToken.Value);
-        var propertyExpression = new PropertyExpression(variableExpression);
+        NodeExpression node = null;
 
         if (Match(TokenType.Punctuation, "."))
         {
@@ -121,11 +120,11 @@ public class TokensParser
 
             if (Match(TokenType.Identifier))
             {
-                propertyExpression.NestedNode = ParseExpression();
+                node = ParseExpression();
             }
         }
 
-        return propertyExpression;
+        return new PropertyExpression(nameToken.Value, node);
     }
 
     private NodeExpression ParseStartOfSquareBracket()
@@ -305,7 +304,7 @@ public class TokensParser
         {
             _ = Expect(TokenType.Punctuation, "(");
             var expr = ParseExpression();
-            Expect(TokenType.Punctuation, ")"); // Consume the closing parenthesis
+            Expect(TokenType.Punctuation, ")");
             return expr;
         }
 
@@ -314,7 +313,7 @@ public class TokensParser
             var node = ParseArrayExpression();
             return node;
         }
-        
+
         if (MatchNext(TokenType.Punctuation, "."))
         {
             var token = Expect(TokenType.Identifier);
