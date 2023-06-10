@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Reflection;
 using SharpScript.Evaluator.Helpers;
 using SharpScript.Evaluator.Models;
 using SharpScript.Evaluator.StandardLibrary;
@@ -191,9 +193,23 @@ public class ProgramEvaluator
         var del = func as Delegate;
 
         var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
-        
-        // return del!.DynamicInvoke(new object[] { args });
-        return del!.DynamicInvoke(new object[] { args });
+        var parameters = del.Method.GetParameters();
+
+        if (
+            parameters.Length <= 2 && (parameters[0].ParameterType == typeof(object[]) ||
+                                       parameters[1].ParameterType == typeof(object[])))
+        {
+            var arr = args;
+            args = new[] { arr };
+        }
+
+
+        return del.DynamicInvoke(args);
+    }
+
+    private object[] ParseArguments()
+    {
+        return new[] { new object() };
     }
 
     private object? EvaluateVariableAssignment(
