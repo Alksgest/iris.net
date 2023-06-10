@@ -190,19 +190,26 @@ public class ProgramEvaluator
         ThrowHelper.ThrowIfNotCallable(environments, funcName);
 
         var func = EnvironmentHelper.GetVariableValue(environments, funcName);
-        var del = func as Delegate;
-
+        
         var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
-        var parameters = del.Method.GetParameters();
-
-        if (
-            parameters.Length <= 2 && (parameters[0].ParameterType == typeof(object[]) ||
-                                       parameters[1].ParameterType == typeof(object[])))
+        
+        if (func is MethodInfo method)
         {
-            var arr = args;
-            args = new[] { arr };
-        }
+            var parameterInfos = method.GetParameters();
 
+            if (args.Count < parameterInfos.Length)
+            {
+                for (var i = args.Count; i < parameterInfos.Length; ++i)
+                {
+                    args.Add(parameterInfos[i].DefaultValue);
+                }
+            }
+            
+            return method.Invoke(null, args.ToArray());
+        } 
+        
+        // This mean declared function from soruce code
+        var del = func as Delegate;
 
         return del.DynamicInvoke(args);
     }
@@ -269,8 +276,8 @@ public class ProgramEvaluator
         return value;
     }
 
-    private object?[] EvaluateCallArguments(IEnumerable<NodeExpression> args, List<ScopeEnvironment> environments)
+    private List<object?> EvaluateCallArguments(IEnumerable<NodeExpression> args, List<ScopeEnvironment> environments)
     {
-        return args.Select((arg) => Evaluate(arg, environments)).ToArray();
+        return args.Select((arg) => Evaluate(arg, environments)).ToList();
     }
 }

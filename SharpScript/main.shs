@@ -1,1 +1,1 @@
-print(rand(0, 10));
+print(sum(1, 1, 1));

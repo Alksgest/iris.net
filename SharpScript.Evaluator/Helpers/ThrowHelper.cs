@@ -1,3 +1,4 @@
+using System.Reflection;
 using SharpScript.Evaluator.Models;
 
 namespace SharpScript.Evaluator.Helpers;
@@ -28,7 +29,7 @@ public static class ThrowHelper
 
         var value = EnvironmentHelper.GetVariableValue(environments, name);
 
-        if (value is not Delegate)
+        if (value is not Delegate && value is not MethodInfo)
         {
             throw new Exception($"Variable {name} is not callable");
         }
