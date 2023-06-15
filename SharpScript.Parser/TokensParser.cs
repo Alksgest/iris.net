@@ -378,6 +378,8 @@ public class TokensParser
     {
         switch (op.Value)
         {
+            case ".":
+                return 10;
             case "*":
             case "/":
                 return 2;

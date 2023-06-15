@@ -1,1 +1,1 @@
-print("sus".length.toString());
+print(("sus".length * 2).toString());

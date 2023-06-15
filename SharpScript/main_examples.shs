@@ -211,3 +211,6 @@ const s1 = "sus";
 
 print(s1.length);
 print("not a sus".length);
+
+
+print(("sus".length * 2).toString());
