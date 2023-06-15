@@ -162,3 +162,52 @@ function reverseArray(arr) {
     }
 }
 
+
+function reverseArray(arr) {
+    let index = 0;
+    let length = arr.length;
+    let middlePoint;
+    if(length % 2 == 1) {
+        middlePoint = (length - 1) / 2;
+    } else {
+        middlePoint = length / 2;
+    }
+    while(index != middlePoint) {
+        const l = arr.get(index);
+        const r = arr.get(length - index - 1);
+        arr.set(index, r);
+        arr.set(arr.length - index - 1, l);
+        index = index +1;
+    }
+}
+
+function main() {
+    const arr = [1, 2, 3, 4, 5];
+    const copy = arr.makeCopy();
+    
+    print(arr);
+    reverseArray(arr);
+    print(arr);
+    print(copy);
+    
+    let index = 0;
+    while(index != arr.length) {
+        copy.add(arr.get(index));
+        index = index + 1;
+    }
+    
+    print(copy);
+}
+
+main();
+
+
+const arr = [1, 2, 3];
+const l = arr.makeCopy().length;
+print(l);
+
+
+const s1 = "sus";
+
+print(s1.length);
+print("not a sus".length);

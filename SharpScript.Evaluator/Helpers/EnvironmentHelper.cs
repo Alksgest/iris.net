@@ -63,8 +63,8 @@ internal static class EnvironmentHelper
     {
         ObjectInScope? objectInScope = value switch
         {
-            string str => new PrimitiveValueInScope<string>(str, name),
-            decimal d => new PrimitiveValueInScope<decimal>(d, name),
+            string str => new StringValueInScope(str, name),
+            decimal d => new NumberValueInScope(d, name),
             bool b => new PrimitiveValueInScope<bool>(b, name),
             Delegate del => new DelegateInScope(del, name),
             MethodInfo m => new MethodInScope(m, name),

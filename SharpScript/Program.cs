@@ -32,7 +32,7 @@ public static class Program
             Console.WriteLine($"{token.Type.ToString()}: {token.Value}");
         }
 
-        var parser = new TokensParser(tokens);
+        var parser = new TokensParser(tokens); 
         var tree = parser.ParseTokens();
         
         Console.WriteLine(tree);

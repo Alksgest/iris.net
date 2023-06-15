@@ -89,14 +89,6 @@ public class TokensParser
 
         if (Match(TokenType.Identifier))
         {
-            if (MatchNext(TokenType.Punctuation, "."))
-            {
-                var nameToken = Expect(TokenType.Identifier);
-                var propertyExpression = ParsePropertyExpression(nameToken);
-                _ = Expect(TokenType.Punctuation, ";");
-                return propertyExpression;
-            }
-
             var node = ParseIdentifierExpression();
             _ = Expect(TokenType.Punctuation, ";");
             return node;
@@ -116,46 +108,6 @@ public class TokensParser
         }
 
         throw new Exception("Expected a statement");
-    }
-
-    private PropertyExpression ParsePropertyExpression(Token nameToken)
-    {
-        var propertyExpression = new PropertyExpression(nameToken.Value);
-        
-        Node? node = null;
-
-        if (Match(TokenType.Punctuation, "."))
-        {
-            _ = Expect(TokenType.Punctuation, ".");
-
-            if (Match(TokenType.Identifier))
-            {
-                var token = Expect(TokenType.Identifier);
-               node = ParsePropertyIdentifierExpression(token);
-            }
-        }
-
-        propertyExpression.NestedNode = node;
-        return propertyExpression;
-    }
-    
-    private NodeExpression ParsePropertyIdentifierExpression(Token token)
-    {
-        while (Match(TokenType.Punctuation, "."))
-        {
-            _ = Expect(TokenType.Punctuation, ".");
-            var nameToken = Expect(TokenType.Identifier);
-            var propertyExpression = ParsePropertyExpression(nameToken);
-            return propertyExpression;
-        }
-
-        if (Match(TokenType.Punctuation, "("))
-        {
-            var functionCall = ParseFunctionCall(token.Value);
-            return new FunctionCallExpression(token.Value, functionCall);
-        }
-        
-        return new PropertyIdentifierExpression(token.Value);
     }
 
     private NodeExpression ParseStartOfSquareBracket()
@@ -229,6 +181,7 @@ public class TokensParser
     {
         // assign value if left part if variable name
         var nameToken = Expect(TokenType.Identifier);
+        
         if (Match(TokenType.Operator, "="))
         {
             return ParseVariableAssignment(nameToken);
@@ -297,6 +250,7 @@ public class TokensParser
         return ParseBinaryExpression(0);
     }
 
+    // TODO: add possibility to handle nested calls i.e. const l = arr.makeCopy().length;
     private NodeExpression ParseBinaryExpression(int minPrecedence)
     {
         var expr = ParseUnaryExpression();
@@ -343,13 +297,6 @@ public class TokensParser
         {
             var node = ParseArrayExpression();
             return node;
-        }
-
-        if (MatchNext(TokenType.Punctuation, "."))
-        {
-            var token = Expect(TokenType.Identifier);
-            var propertyExpression = ParsePropertyExpression(token);
-            return propertyExpression;
         }
 
         if (Match(TokenType.Operator, "-") || Match(TokenType.Operator, "!"))
@@ -420,14 +367,6 @@ public class TokensParser
 
                 return new FunctionCallExpression(token, functionCall);
             }
-            
-            // if (MatchPrev(TokenType.Punctuation, "."))
-            // {
-            //     var token = Expect(TokenType.Identifier);
-            //     var propertyExpression = ParsePropertyIdentifierExpression(token);
-            //     // var propertyExpression = ParseExpression();
-            //     return propertyExpression;
-            // }
 
             return new VariableExpression(Expect(TokenType.Identifier).Value);
         }

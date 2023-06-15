@@ -8,7 +8,7 @@ public class ArrayInScope : ObjectInScope
 
     [NestedProperty(Name = "length")] public decimal Length => Value.Count;
 
-    public ArrayInScope(List<object> value, string name) : base(value, name)
+    public ArrayInScope(List<object> value, string? name = null) : base(value, name)
     {
     }
 

@@ -20,9 +20,9 @@ public class Tokenizer
     private List<Token> _tokens = new();
 
     private readonly List<string> _operators = new()
-        { "=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|", "%" };
+        { "=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|", "%", "." };
 
-    private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}", "[", "]", "." };
+    private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}", "[", "]" };
 
     private readonly List<string>
         _keyWords = new()

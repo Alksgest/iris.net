@@ -38,6 +38,7 @@ public class ProgramEvaluator
             FunctionCallExpression functionCallExpression =>
                 EvaluateFunctionCallExpression(functionCallExpression, envs),
             FunctionCall functionCall => EvaluateFunctionCall(functionCall, envs),
+            BinaryExpression { Operator: "." } binaryExpression => EvaluateDotOperator(binaryExpression, envs),
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression, envs),
             UnaryExpression unaryExpression => EvaluateUnaryExpression(unaryExpression, envs),
             ArrayExpression arrayExpression => EvaluateArrayExpression(arrayExpression, envs),
@@ -46,7 +47,6 @@ public class ProgramEvaluator
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
             FunctionDeclaration functionDeclaration => EvaluateFunctionDeclaration(functionDeclaration, envs),
-            PropertyExpression propertyExpression => EvaluatePropertyExpression(propertyExpression, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
@@ -142,49 +142,6 @@ public class ProgramEvaluator
         return null;
     }
 
-    private object? EvaluatePropertyExpression(
-        PropertyExpression propertyExpression,
-        List<ScopeEnvironment> envs)
-    {
-        var objectInScope = EnvironmentHelper.GetVariableInScope(envs, propertyExpression.VariableName);
-        // Make it recursive like getting calculating first property, second and so on
-        var (path, type) = GetFullPath(propertyExpression, "");
-
-        if (type == typeof(PropertyIdentifierExpression))
-        {
-            return ObjectHelper.GetPropertyValue(objectInScope!, path, propertyExpression.VariableName);
-        }
-
-        if (type == typeof(FunctionCallExpression))
-        {
-            var expr = propertyExpression.NestedNode as FunctionCallExpression;
-            var method = ObjectHelper.GetNestedMethod(objectInScope!, path, propertyExpression.VariableName);
-
-            var args = EvaluateCallArguments(
-                expr!.FunctionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
-                envs);
-
-            var result = CallFunctionWithArguments(method, args, objectInScope);
-            return result;
-        }
-
-        return null;
-    }
-
-    private static (string, Type) GetFullPath(PropertyExpression propertyExpression, string currentPath)
-    {
-        var (furtherPath, leafType) = propertyExpression.NestedNode switch
-        {
-            PropertyIdentifierExpression e => (e.Value, typeof(PropertyIdentifierExpression)),
-            VariableExpression e => (e.Value, typeof(VariableExpression)),
-            FunctionCallExpression f => (f.Value, typeof(FunctionCallExpression)),
-            PropertyExpression p => GetFullPath(p, $"{p.VariableName}"),
-            _ => throw new ArgumentOutOfRangeException(nameof(propertyExpression.NestedNode))
-        };
-
-        return ($"{currentPath}.{furtherPath}", leafType);
-    }
-
     private object EvaluateArrayExpression(ArrayExpression arrayExpression, List<ScopeEnvironment> envs)
     {
         var elements = arrayExpression.Value.Select((el) => Evaluate(el, envs));
@@ -230,6 +187,42 @@ public class ProgramEvaluator
         };
 
         return result;
+    }
+
+    private object? EvaluateDotOperator(
+        BinaryExpression binaryExpression,
+        List<ScopeEnvironment> envs)
+    {
+        var left = Evaluate(binaryExpression.Left, envs)!;
+
+        ObjectInScope leftValueInScope = left switch
+        {
+            List<object> list => new ArrayInScope(list),
+            string str => new StringValueInScope(str),
+            decimal d => new NumberValueInScope(d),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+
+        switch (binaryExpression.Right)
+        {
+            case FunctionCallExpression functionCallExpression:
+            {
+                var method = ObjectHelper.GetNestedMethod(leftValueInScope!, $".{functionCallExpression.Value}",
+                    leftValueInScope.Name);
+
+                var args = EvaluateCallArguments(
+                    functionCallExpression.FunctionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
+                    envs);
+
+                return CallFunctionWithArguments(method, args, leftValueInScope);
+            }
+            case VariableExpression expression:
+            {
+                return ObjectHelper.GetPropertyValue(leftValueInScope, $".{expression.Value}", expression.Value);
+            }
+            default:
+                return null;
+        }
     }
 
     private object? EvaluateFunctionDeclaration(
