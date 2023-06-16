@@ -240,7 +240,7 @@ public class ProgramEvaluator
             return objectInScope.Value[expression.Value];
         }
         
-        return ObjectHelper.GetPropertyValue(leftValueInScope, $".{leftValueInScope.Name}", expression.Value);
+        return ObjectHelper.GetPropertyValue(leftValueInScope, expression.Value);
     }
 
     private object? EvaluateFunctionDeclaration(

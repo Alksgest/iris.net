@@ -6,7 +6,7 @@ namespace SharpScript.Evaluator.Helpers;
 
 internal static class ObjectHelper
 {
-    internal static object? GetPropertyValue(EmbeddedEntityInScope obj, string path, string rootName)
+    internal static object? GetPropertyValue(EmbeddedEntityInScope obj, string propertyName)
     {
         var type = obj.GetType();
         var properties = type
@@ -14,18 +14,11 @@ internal static class ObjectHelper
             .Where(el => Attribute.IsDefined(el, typeof(NestedPropertyAttribute)))
             .ToList();
 
-        var splitted = path.Split(".");
-
         if (properties.Count == 0)
         {
-            throw new ArgumentException($"There are no known properties in object {rootName}");
+            throw new ArgumentException($"There are no known properties in object {obj.Name}");
         }
         
-        // TODO: supports only one level depth
-        // TODO: add support of any depth in future
-
-        var propertyName = splitted[1];
-
         var property = properties.SingleOrDefault(el =>
         {
             var attr = el.GetCustomAttribute(typeof(NestedPropertyAttribute)) as NestedPropertyAttribute;
@@ -34,7 +27,7 @@ internal static class ObjectHelper
 
         if (property == null)
         {
-            throw new ArgumentException($"There is no known property {propertyName} in object {rootName}");
+            throw new ArgumentException($"There is no known property {obj.Name} in object {propertyName}");
         }
 
         return property.GetValue(obj);

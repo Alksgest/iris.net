@@ -22,7 +22,7 @@ public class Tokenizer
     private readonly List<string> _operators = new()
         { "=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|", "%", "." };
 
-    private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}", "[", "]" };
+    private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}", "[", "]", "." }; // I believe that this "." here will not short me in the leg
 
     private readonly List<string>
         _keyWords = new()
@@ -179,6 +179,10 @@ public class Tokenizer
     private void HandleNumber(char c, StringBuilder tokenBuilder)
     {
         if (char.IsNumber(c))
+        {
+            tokenBuilder.Append(c);
+        }
+        else if (c == '.')
         {
             tokenBuilder.Append(c);
         }
