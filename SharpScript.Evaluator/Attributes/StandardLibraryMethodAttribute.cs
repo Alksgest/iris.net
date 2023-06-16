@@ -4,4 +4,9 @@ namespace SharpScript.Evaluator.Attributes;
 public class StandardLibraryMethodAttribute : Attribute
 {
     public string Name { get; set; }
+
+    public StandardLibraryMethodAttribute(string name)
+    {
+        Name = name;
+    }
 }

@@ -20,23 +20,39 @@ public static class StandardLibraryInitializer
         foreach (var module in modules)
         {
             var staticMethods = module.GetMethods(BindingFlags.Static | BindingFlags.Public);
+            var properties = module.GetProperties(BindingFlags.Static | BindingFlags.Public);
+            
             var methodsToRegister = staticMethods
                 .Where(el => el.GetCustomAttribute(typeof(StandardLibraryMethodAttribute)) != null)
                 .ToList();
-
-            if (!methodsToRegister.Any())
-            {
-                continue;
-            }
+            var propertiesToCreate =  properties
+                .Where(el => el.GetCustomAttribute(typeof(StandardLibraryPropertyAttribute)) != null)
+                .ToList();
 
             var propertyDictionary = new Dictionary<string, object>();
 
-            foreach (var method in methodsToRegister)
+            if (methodsToRegister.Any())
             {
-                var methodAnnotation =
-                    method.GetCustomAttribute(typeof(StandardLibraryMethodAttribute)) as StandardLibraryMethodAttribute;
+                foreach (var method in methodsToRegister)
+                {
+                    var methodAnnotation =
+                        method.GetCustomAttribute(typeof(StandardLibraryMethodAttribute)) as
+                            StandardLibraryMethodAttribute;
 
-                propertyDictionary[methodAnnotation!.Name] = method;
+                    propertyDictionary[methodAnnotation!.Name] = method;
+                }
+            }
+
+            if (propertiesToCreate.Any())
+            {
+                foreach (var property in propertiesToCreate)
+                {
+                    var propertyAnnotation =
+                        property.GetCustomAttribute(typeof(StandardLibraryPropertyAttribute)) as
+                            StandardLibraryPropertyAttribute;
+
+                    propertyDictionary[propertyAnnotation!.Name] = property.GetValue(module);
+                }
             }
 
             var moduleName =

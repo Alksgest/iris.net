@@ -1,1 +1,1 @@
-console.print("sus");
+console.log(math.pi);
