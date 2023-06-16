@@ -2,7 +2,7 @@ using SharpScript.Evaluator.Attributes;
 
 namespace SharpScript.Evaluator.Models;
 
-public class ArrayInScope : ObjectInScope
+public class ArrayInScope : EmbeddedEntityInScope
 {
     public List<object> Value => (List<object>)Object;
 

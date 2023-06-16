@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace SharpScript.Evaluator.Models;
 
-public class MethodInScope : ObjectInScope
+public class MethodInScope : EmbeddedEntityInScope
 {
     public MethodInfo Value => (MethodInfo)Object;
 

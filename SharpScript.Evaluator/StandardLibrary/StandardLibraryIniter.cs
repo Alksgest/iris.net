@@ -10,7 +10,7 @@ public static class StandardLibraryInitializer
 {
     private static readonly List<Type> Modules = new()
     {
-        typeof(ConsoleLibrary), 
+        typeof(ConsoleLibrary),
         typeof(MathLibrary)
     };
 
@@ -29,14 +29,23 @@ public static class StandardLibraryInitializer
                 continue;
             }
 
+            var propertyDictionary = new Dictionary<string, object>();
+
             foreach (var method in methodsToRegister)
             {
-                // TODO: in future add module as a root object
                 var methodAnnotation =
                     method.GetCustomAttribute(typeof(StandardLibraryMethodAttribute)) as StandardLibraryMethodAttribute;
 
-                EnvironmentHelper.DeclareVariable(environments, methodAnnotation!.Name, method);
+                propertyDictionary[methodAnnotation!.Name] = method;
             }
+
+            var moduleName =
+                (module.GetCustomAttribute(typeof(StandardLibraryModuleAttribute)) as StandardLibraryModuleAttribute)!
+                .Name;
+
+            var objectInScope = new ObjectInScope(propertyDictionary, moduleName);
+
+            EnvironmentHelper.AddVariableToScope(environments, moduleName, objectInScope);
         }
     }
 }

@@ -1,6 +1,6 @@
 namespace SharpScript.Evaluator.Models;
 
-public class DelegateInScope : ObjectInScope
+public class DelegateInScope : EmbeddedEntityInScope
 {
     public Delegate Value => (Delegate)Object;
 

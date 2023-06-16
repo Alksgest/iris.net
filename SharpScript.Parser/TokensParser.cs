@@ -192,6 +192,9 @@ public class TokensParser
             return ParseFunctionCall(nameToken.Value);
         }
 
+        _currentTokenIndex--;
+        return ParseExpression();
+
         throw new Exception("Invalid identifier expression");
     }
 
@@ -250,7 +253,6 @@ public class TokensParser
         return ParseBinaryExpression(0);
     }
 
-    // TODO: add possibility to handle nested calls i.e. const l = arr.makeCopy().length;
     private NodeExpression ParseBinaryExpression(int minPrecedence)
     {
         var expr = ParseUnaryExpression();

@@ -195,34 +195,52 @@ public class ProgramEvaluator
     {
         var left = Evaluate(binaryExpression.Left, envs)!;
 
-        ObjectInScope leftValueInScope = left switch
+        EmbeddedEntityInScope leftValueInScope = left switch
         {
             List<object> list => new ArrayInScope(list),
+            Dictionary<string, object> dict => new ObjectInScope(dict),
             string str => new StringValueInScope(str),
             decimal d => new NumberValueInScope(d),
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        switch (binaryExpression.Right)
+        return binaryExpression.Right switch
         {
-            case FunctionCallExpression functionCallExpression:
-            {
-                var method = ObjectHelper.GetNestedMethod(leftValueInScope!, $".{functionCallExpression.Value}",
-                    leftValueInScope.Name);
+            FunctionCallExpression functionCallExpression => HandleFunctionCallExpression(leftValueInScope,
+                functionCallExpression, envs),
+            VariableExpression expression => HandleVariableExpression(leftValueInScope, expression),
+            _ => null
+        };
+    }
 
-                var args = EvaluateCallArguments(
-                    functionCallExpression.FunctionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
-                    envs);
+    private object? HandleFunctionCallExpression(
+        EmbeddedEntityInScope leftValueInScope,
+        FunctionCallExpression functionCallExpression,
+        List<ScopeEnvironment> envs)
+    {
+        var args = EvaluateCallArguments(
+            functionCallExpression.FunctionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
+            envs);
 
-                return CallFunctionWithArguments(method, args, leftValueInScope);
-            }
-            case VariableExpression expression:
-            {
-                return ObjectHelper.GetPropertyValue(leftValueInScope, $".{expression.Value}", expression.Value);
-            }
-            default:
-                return null;
+        if (leftValueInScope is ObjectInScope objectInScope)
+        {
+            return CallFunctionWithArguments(objectInScope.Value[functionCallExpression.Value], args, leftValueInScope);
         }
+
+        var method = ObjectHelper.GetNestedMethod(leftValueInScope!, $".{functionCallExpression.Value}",
+            leftValueInScope.Name);
+
+        return CallFunctionWithArguments(method, args, leftValueInScope);
+    }
+
+    private object? HandleVariableExpression(EmbeddedEntityInScope leftValueInScope, VariableExpression expression)
+    {
+        if (leftValueInScope is ObjectInScope objectInScope)
+        {
+            return objectInScope.Value[expression.Value];
+        }
+        
+        return ObjectHelper.GetPropertyValue(leftValueInScope, $".{leftValueInScope.Name}", expression.Value);
     }
 
     private object? EvaluateFunctionDeclaration(

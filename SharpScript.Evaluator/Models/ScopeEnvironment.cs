@@ -4,7 +4,7 @@ public class ScopeEnvironment
 {
     public string Name { get; }
     public Guid Id { get; }
-    public Dictionary<string, ObjectInScope?> Variables { get; } = new();
+    public Dictionary<string, EmbeddedEntityInScope?> Variables { get; } = new();
 
     public ScopeEnvironment(string name)
     {

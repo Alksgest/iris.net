@@ -6,7 +6,7 @@ namespace SharpScript.Evaluator.Helpers;
 
 internal static class ObjectHelper
 {
-    internal static object? GetPropertyValue(ObjectInScope obj, string path, string rootName)
+    internal static object? GetPropertyValue(EmbeddedEntityInScope obj, string path, string rootName)
     {
         var type = obj.GetType();
         var properties = type
@@ -40,7 +40,7 @@ internal static class ObjectHelper
         return property.GetValue(obj);
     }
     
-    internal static MethodInfo GetNestedMethod(ObjectInScope obj, string path, string rootName)
+    internal static MethodInfo GetNestedMethod(EmbeddedEntityInScope obj, string path, string rootName)
     {
         var type = obj.GetType();
         var methods = type
