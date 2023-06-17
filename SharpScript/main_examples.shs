@@ -243,3 +243,26 @@ function foo() {
 
 const a = foo();
 console.log(a);
+
+function test(number) {
+    function inner() {
+        console.log(number);
+    }
+    
+    return inner;
+}
+
+const f = test(157);
+
+f();
+
+
+function test(number) {
+    return function () {
+           console.log(number);
+       };
+}
+
+const f = test(157);
+
+f();

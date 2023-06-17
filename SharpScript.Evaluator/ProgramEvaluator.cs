@@ -119,7 +119,7 @@ public class ProgramEvaluator
     private object? EvaluateWhileExpression(WhileExpression whileExpression, List<ScopeEnvironment> envs)
     {
         // TODO: probably add logic for avoiding 'while(true)'
-        var condition = (bool)Evaluate(whileExpression.Condition, envs);
+        var condition = (bool)Evaluate(whileExpression.Condition, envs)!;
         while (condition)
         {
             var result = Evaluate(whileExpression.Body, envs);
@@ -128,7 +128,7 @@ public class ProgramEvaluator
                 break;
             }
 
-            condition = (bool)Evaluate(whileExpression.Condition, envs);
+            condition = (bool)Evaluate(whileExpression.Condition, envs)!;
         }
 
         return condition;
@@ -173,7 +173,7 @@ public class ProgramEvaluator
         return result;
     }
 
-    private object? EvaluateBinaryExpression(BinaryExpression binaryExpression, List<ScopeEnvironment> environments)
+    private object EvaluateBinaryExpression(BinaryExpression binaryExpression, List<ScopeEnvironment> environments)
     {
         var left = Evaluate(binaryExpression.Left, environments);
         var right = Evaluate(binaryExpression.Right, environments);
@@ -238,7 +238,7 @@ public class ProgramEvaluator
         }
 
         var method = ObjectHelper.GetNestedMethod(
-            leftValue!,
+            leftValue,
             functionCallExpression.Name,
             leftValue.Name);
 
@@ -255,24 +255,25 @@ public class ProgramEvaluator
         return ObjectHelper.GetPropertyValue(leftValue, expression.Value);
     }
 
-    private object? EvaluateFunctionDeclaration(
+    private object EvaluateFunctionDeclaration(
         FunctionDeclaration functionDeclaration,
         IReadOnlyCollection<ScopeEnvironment> envs)
     {
-        var func = (object[] inputArgs) => CreateFunctionBody(inputArgs, functionDeclaration.Function, envs);
-        EnvironmentHelper.DeclareVariable(envs, functionDeclaration.Name, func);
-        return null;
+        object? Func(object[] inputArgs) => ExecuteFunctionBody(inputArgs, functionDeclaration.Function, envs);
+
+        EnvironmentHelper.DeclareVariable(envs, functionDeclaration.Name, Func);
+        return Func;
     }
 
-    private object? EvaluateFunctionAssignmentExpression(
+    private object EvaluateFunctionAssignmentExpression(
         FunctionExpression functionExpression,
         IReadOnlyCollection<ScopeEnvironment> envs)
     {
-        var func = (object[] inputArgs) => CreateFunctionBody(inputArgs, functionExpression.Value, envs);
-        return func;
+        object? Func(object[] inputArgs) => ExecuteFunctionBody(inputArgs, functionExpression.Value, envs);
+        return Func;
     }
 
-    private object? CreateFunctionBody(
+    private object? ExecuteFunctionBody(
         object[] inputArgs,
         FunctionWrapper function,
         IEnumerable<ScopeEnvironment> envs,

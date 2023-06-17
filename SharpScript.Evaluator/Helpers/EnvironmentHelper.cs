@@ -25,7 +25,7 @@ internal static class EnvironmentHelper
         return env.Variables[name];
     }
 
-    internal static void SetVariableValue(IEnumerable<ScopeEnvironment> environments, string name, object value)
+    internal static void SetVariableValue(IEnumerable<ScopeEnvironment> environments, string name, object? value)
     {
         var env = environments.SingleOrDefault(env => env.Variables.ContainsKey(name));
 
