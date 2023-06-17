@@ -38,6 +38,9 @@ public class ProgramEvaluator
             FunctionCallExpression functionCallExpression =>
                 EvaluateFunctionCallExpression(functionCallExpression, envs),
             FunctionCall functionCall => EvaluateFunctionCall(functionCall, envs),
+            FunctionDeclaration functionDeclaration => EvaluateFunctionDeclaration(functionDeclaration, envs),
+            FunctionAssignmentExpression functionAssignmentExpression => EvaluateFunctionAssignmentExpression(
+                functionAssignmentExpression, envs),
             BinaryExpression { Operator: "." } binaryExpression => EvaluateDotOperator(binaryExpression, envs),
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression, envs),
             UnaryExpression unaryExpression => EvaluateUnaryExpression(unaryExpression, envs),
@@ -46,7 +49,6 @@ public class ProgramEvaluator
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
-            FunctionDeclaration functionDeclaration => EvaluateFunctionDeclaration(functionDeclaration, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
@@ -239,27 +241,36 @@ public class ProgramEvaluator
         {
             return objectInScope.Value[expression.Value];
         }
-        
+
         return ObjectHelper.GetPropertyValue(leftValueInScope, expression.Value);
     }
 
     private object? EvaluateFunctionDeclaration(
         FunctionDeclaration functionDeclaration,
-        List<ScopeEnvironment> envs)
+        IReadOnlyCollection<ScopeEnvironment> envs)
     {
-        var func = (object[] inputArgs) => DeclareFunction(inputArgs, functionDeclaration, envs);
+        var func = (object[] inputArgs) => CreateFunctionBody(inputArgs, functionDeclaration.Function, envs);
         EnvironmentHelper.DeclareVariable(envs, functionDeclaration.Name, func);
         return null;
     }
 
-    private object? DeclareFunction(
-        object[] inputArgs,
-        FunctionDeclaration functionDeclaration,
-        IEnumerable<ScopeEnvironment> envs)
+    private object? EvaluateFunctionAssignmentExpression(
+        FunctionAssignmentExpression functionAssignmentExpression,
+        IReadOnlyCollection<ScopeEnvironment> envs)
     {
-        var args = functionDeclaration.Arguments;
+        var func = (object[] inputArgs) => CreateFunctionBody(inputArgs, functionAssignmentExpression.Function, envs);
+        return func;
+    }
 
-        var scope = new ScopeEnvironment($"Local_{functionDeclaration.Name}");
+    private object? CreateFunctionBody(
+        object[] inputArgs,
+        FunctionWrapper function,
+        IEnumerable<ScopeEnvironment> envs,
+        string? functionName = null)
+    {
+        var args = function.Arguments;
+
+        var scope = new ScopeEnvironment($"Local_{functionName ?? "anonymous"}");
         for (var i = 0; i < args.Count; ++i)
         {
             var variableName = args[i].Value;
@@ -267,7 +278,7 @@ public class ProgramEvaluator
         }
 
         var totalScope = new List<ScopeEnvironment>(envs) { scope };
-        var obj = Evaluate(functionDeclaration.ScopedNode, totalScope);
+        var obj = Evaluate(function.Body, totalScope);
 
         return obj;
     }

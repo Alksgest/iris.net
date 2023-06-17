@@ -3,6 +3,13 @@ using SharpScript.Lexer.Models;
 
 namespace SharpScript.Lexer;
 
+/*
+ * const obj = {
+ *      prop1: 17,
+ *      prop2: function(a, b) {
+ *      }
+ * }
+ */
 // TODO: add operators +=, -=, *=, /=, %=
 // TODO: handle operators &, |, >>, <<
 // TODO: handle math operators ++

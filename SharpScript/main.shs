@@ -1,6 +1,4 @@
-const print = console.log;
-
-function reverseArray(arr) {
+const reverseArray = function (arr) {
     let index = 0;
     let length = arr.length;
     let middlePoint;
@@ -18,22 +16,5 @@ function reverseArray(arr) {
     }
 }
 
-function main() {
-    const arr = [1, 2, 3, 4, 5];
-    const copy = arr.makeCopy();
-    
-    print(arr);
-    reverseArray(arr);
-    print(arr);
-    print(copy);
-    
-    let index = 0;
-    while(index != arr.length) {
-        copy.add(arr.get(index));
-        index = index + 1;
-    }
-    
-    print(copy);
-}
-
-main();
+const arr = [1, 2, 3];
+console.log(arr);

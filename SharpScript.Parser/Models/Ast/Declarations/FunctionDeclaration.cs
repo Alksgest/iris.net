@@ -4,12 +4,10 @@ namespace SharpScript.Parser.Models.Ast.Declarations;
 
 public class FunctionDeclaration : Node
 {
-    public List<VariableExpression> Arguments { get; set; }
-    public ScopedNode ScopedNode { get; }
+    public FunctionWrapper Function { get; set; }
 
-    public FunctionDeclaration(string name, List<VariableExpression> arguments, ScopedNode scopedNode) : base(name)
+    public FunctionDeclaration(string name, FunctionWrapper function) : base(name)
     {
-        Arguments = arguments;
-        ScopedNode = scopedNode;
+        Function = function;
     }
 }

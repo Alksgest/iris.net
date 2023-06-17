@@ -40,7 +40,11 @@ public class TokensParser
         {
             _ = Expect(TokenType.Keyword, "const");
             var node = ParseConstVariableDeclaration();
-            _ = Expect(TokenType.Punctuation, ";");
+            if (!MatchPrev(TokenType.Punctuation, "}"))
+            {
+                _ = Expect(TokenType.Punctuation, ";");
+            }
+
             return node;
         }
 
@@ -48,7 +52,12 @@ public class TokensParser
         {
             _ = Expect(TokenType.Keyword, "let");
             var node = ParseLetVariableDeclaration();
-            _ = Expect(TokenType.Punctuation, ";");
+
+            if (!MatchPrev(TokenType.Punctuation, "}"))
+            {
+                _ = Expect(TokenType.Punctuation, ";");
+            }
+
             return node;
         }
 
@@ -67,12 +76,12 @@ public class TokensParser
 
             return new WhileExpression(condition, body!);
         }
-        
+
         if (Match(TokenType.Keyword, "break"))
         {
             _ = Expect(TokenType.Keyword, "break");
             _ = Expect(TokenType.Punctuation, ";");
-            
+
             return new BreakExpression();
         }
 
@@ -82,15 +91,22 @@ public class TokensParser
 
             var name = Expect(TokenType.Identifier).Value;
             var arguments = ParseFunctionArguments();
-            var scope = ParseScopedNode();
+            var functionBody = ParseScopedNode();
 
-            return new FunctionDeclaration(name, arguments, scope);
+            var function = new FunctionWrapper(functionBody, arguments);
+
+            return new FunctionDeclaration(name, function);
         }
 
         if (Match(TokenType.Identifier))
         {
             var node = ParseIdentifierExpression();
-            _ = Expect(TokenType.Punctuation, ";");
+
+            if (!MatchPrev(TokenType.Punctuation, "}"))
+            {
+                _ = Expect(TokenType.Punctuation, ";");
+            }
+
             return node;
         }
 
@@ -181,7 +197,7 @@ public class TokensParser
     {
         // assign value if left part if variable name
         var nameToken = Expect(TokenType.Identifier);
-        
+
         if (Match(TokenType.Operator, "="))
         {
             return ParseVariableAssignment(nameToken);
@@ -194,8 +210,6 @@ public class TokensParser
 
         _currentTokenIndex--;
         return ParseExpression();
-
-        throw new Exception("Invalid identifier expression");
     }
 
     private FunctionCall ParseFunctionCall(string value)
@@ -259,7 +273,7 @@ public class TokensParser
 
         while (true)
         {
-            if (Match(TokenType.Punctuation))
+            if (Match(TokenType.Punctuation) || MatchPrev(TokenType.Punctuation, "}"))
             {
                 break;
             }
@@ -360,6 +374,17 @@ public class TokensParser
             return new NullExpression();
         }
 
+        if (Match(TokenType.Keyword, "function"))
+        {
+            _ = Expect(TokenType.Keyword, "function");
+
+            var arguments = ParseFunctionArguments();
+            var body = ParseScopedNode();
+
+            var function = new FunctionWrapper(body, arguments);
+            return new FunctionAssignmentExpression(function);
+        }
+
         if (Match(TokenType.Identifier))
         {
             if (MatchNext(TokenType.Punctuation, "("))
@@ -375,7 +400,7 @@ public class TokensParser
 
         throw new Exception("Unexpected expression");
     }
-    
+
     private static int GetPrecedence(Token op)
     {
         switch (op.Value)
@@ -411,7 +436,7 @@ public class TokensParser
 
     private bool MatchPrev(TokenType type, string? value = null)
     {
-        if (_currentTokenIndex >= _tokens.Count) return false;
+        if (_currentTokenIndex > _tokens.Count) return false;
 
         var token = _tokens[_currentTokenIndex - 1];
         return token.Type == type && (value == null || token.Value == value);
