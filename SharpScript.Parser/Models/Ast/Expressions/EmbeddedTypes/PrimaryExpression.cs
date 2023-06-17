@@ -1,6 +1,5 @@
-using SharpScript.Lexer.Models;
+namespace SharpScript.Parser.Models.Ast.Expressions.EmbeddedTypes;
 
-namespace SharpScript.Parser.Models.Ast.Expressions.EmdebedTypes;
 
 /// <summary>
 /// Represents node expression which contains some value of T
@@ -9,11 +8,9 @@ namespace SharpScript.Parser.Models.Ast.Expressions.EmdebedTypes;
 public abstract class PrimaryExpression<T> : NodeExpression
 {
     public T Value { get; }
-    public TokenType Type { get; }
     
-    protected PrimaryExpression(string name, T value, TokenType type) : base(name)
+    protected PrimaryExpression(string name, T value) : base(name)
     {
         Value = value;
-        Type = type;
     }
 }

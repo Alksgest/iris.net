@@ -8,7 +8,7 @@ using SharpScript.Parser.Models.Ast;
 using SharpScript.Parser.Models.Ast.Assignments;
 using SharpScript.Parser.Models.Ast.Declarations;
 using SharpScript.Parser.Models.Ast.Expressions;
-using SharpScript.Parser.Models.Ast.Expressions.EmdebedTypes;
+using SharpScript.Parser.Models.Ast.Expressions.EmbeddedTypes;
 using SharpScript.Parser.Models.Ast.Expressions.Functions;
 using SharpScript.Parser.Models.Ast.Expressions.Statements;
 
@@ -42,7 +42,7 @@ public class ProgramEvaluator
             FunctionCallExpression functionCallExpression =>
                 EvaluateFunctionCallExpression(functionCallExpression, envs),
             FunctionDeclaration functionDeclaration => EvaluateFunctionDeclaration(functionDeclaration, envs),
-            FunctionAssignmentExpression functionAssignmentExpression => EvaluateFunctionAssignmentExpression(
+            FunctionExpression functionAssignmentExpression => EvaluateFunctionAssignmentExpression(
                 functionAssignmentExpression, envs),
             BinaryExpression { Operator: "." } binaryExpression => EvaluateDotOperator(binaryExpression, envs),
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression, envs),
@@ -263,10 +263,10 @@ public class ProgramEvaluator
     }
 
     private object? EvaluateFunctionAssignmentExpression(
-        FunctionAssignmentExpression functionAssignmentExpression,
+        FunctionExpression functionExpression,
         IReadOnlyCollection<ScopeEnvironment> envs)
     {
-        var func = (object[] inputArgs) => CreateFunctionBody(inputArgs, functionAssignmentExpression.Function, envs);
+        var func = (object[] inputArgs) => CreateFunctionBody(inputArgs, functionExpression.Value, envs);
         return func;
     }
 

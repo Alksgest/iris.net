@@ -4,7 +4,7 @@ using SharpScript.Parser.Models.Ast;
 using SharpScript.Parser.Models.Ast.Assignments;
 using SharpScript.Parser.Models.Ast.Declarations;
 using SharpScript.Parser.Models.Ast.Expressions;
-using SharpScript.Parser.Models.Ast.Expressions.EmdebedTypes;
+using SharpScript.Parser.Models.Ast.Expressions.EmbeddedTypes;
 using SharpScript.Parser.Models.Ast.Expressions.Functions;
 using SharpScript.Parser.Models.Ast.Expressions.Statements;
 
@@ -395,7 +395,7 @@ public class TokensParser
             var body = ParseScopedNode();
 
             var function = new FunctionWrapper(body, arguments);
-            return new FunctionAssignmentExpression(function);
+            return new FunctionExpression(function);
         }
 
         if (Match(TokenType.Identifier))
