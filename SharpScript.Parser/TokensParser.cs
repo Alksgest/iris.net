@@ -84,6 +84,15 @@ public class TokensParser
 
             return new BreakExpression();
         }
+        
+        if (Match(TokenType.Keyword, "return"))
+        {
+            _ = Expect(TokenType.Keyword, "return");
+            var expression = ParseExpression();
+            _ = Expect(TokenType.Punctuation, ";");
+
+            return new ReturnExpression(expression);
+        }
 
         if (Match(TokenType.Keyword, "function"))
         {

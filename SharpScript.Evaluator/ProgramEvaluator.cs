@@ -49,6 +49,7 @@ public class ProgramEvaluator
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
+            ReturnExpression returnExpression => Evaluate(returnExpression.Expression, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
         };
@@ -76,6 +77,10 @@ public class ProgramEvaluator
         foreach (var statement in scopedNode.Statements)
         {
             result = Evaluate(statement, newEnvs);
+            if (statement is ReturnExpression)
+            {
+                return result;
+            }
         }
 
         newEnvs.Clear();
@@ -331,22 +336,24 @@ public class ProgramEvaluator
             if (paramAttribute != null)
             {
                 var normalArguments = argsArray[..(parameterInfos.Length - 1)];
-                var prms = argsArray[(parameterInfos.Length - 1)..args.Count];
+                var @params = argsArray[(parameterInfos.Length - 1)..args.Count];
                 var newArgs = new object[normalArguments.Length + 1];
 
                 normalArguments.CopyTo(newArgs, 0);
-                newArgs[^1] = prms;
+                newArgs[^1] = @params;
 
                 return method.Invoke(self, newArgs);
             }
 
-            return method.Invoke(self, argsArray);
+            var invokeResult = method.Invoke(self, argsArray);
+            return invokeResult;
         }
 
         // This mean declared function from source code
         var del = func as Delegate;
 
-        return del?.DynamicInvoke(new object?[] { args.ToArray() });
+        var dynamicInvokeResult = del?.DynamicInvoke(new object?[] { args.ToArray() });
+        return dynamicInvokeResult;
     }
 
     private object? EvaluateVariableAssignment(

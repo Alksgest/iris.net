@@ -6,8 +6,8 @@ public class UnaryExpression : NodeExpression
     public string Operator { get; }
 
     public UnaryExpression(
-        NodeExpression expression
-        , string op,
+        NodeExpression expression,
+        string op,
         string? name = null) : base(name ?? nameof(UnaryExpression))
     {
         Left = expression;

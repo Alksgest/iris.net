@@ -214,3 +214,32 @@ print("not a sus".length);
 
 
 print(("sus".length * 2).toString());
+
+const reverseArray = function (arr) {
+    let index = 0;
+    let length = arr.length;
+    let middlePoint;
+    if(length % 2 == 1) {
+        middlePoint = (length - 1) / 2;
+    } else {
+        middlePoint = length / 2;
+    }
+    while(index != middlePoint) {
+        const l = arr.get(index);
+        const r = arr.get(length - index - 1);
+        arr.set(index, r);
+        arr.set(arr.length - index - 1, l);
+        index = index +1;
+    }
+}
+
+const arr = [1, 2, 3];
+console.log(arr);
+
+
+function foo() {
+    return 1;
+}
+
+const a = foo();
+console.log(a);

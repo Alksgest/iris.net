@@ -29,12 +29,16 @@ public class Tokenizer
     private readonly List<string> _operators = new()
         { "=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|", "%", "." };
 
-    private readonly List<string> _punctuations = new() { ";", "(", ")", ",", "{", "}", "[", "]", "." }; // I believe that this "." here will not short me in the leg
+    private readonly List<string>
+        _punctuations = new()
+        {
+            ";", "(", ")", ",", "{", "}", "[", "]", "."
+        }; // I believe that this "." here will not shot me in the leg
 
     private readonly List<string>
         _keyWords = new()
         {
-            "const", "let", "if", "else", "true", "false", "while", "null", "function", "break"
+            "const", "let", "if", "else", "true", "false", "while", "null", "function", "break", "return"
         }; // remove const, add mut
 
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
