@@ -1,4 +1,4 @@
-namespace SharpScript.Parser.Models.Ast.Expressions;
+namespace SharpScript.Parser.Models.Ast.Expressions.Statements;
 
 public class BreakableScopeNode : ScopedNode
 {

@@ -21,27 +21,3 @@ const reverseArray = function (arr) {
 
 const reversed = reverseArray([1, 2, 3]);
 console.log(reversed);
-
-const reverseArray = function (arr) {
-    const copy = arr.makeCopy();
-    let index = 0;
-    let length = copy.length;
-    let middlePoint;
-    if(length % 2 == 1) {
-        middlePoint = (length - 1) / 2;
-    } else {
-        middlePoint = length / 2;
-    }
-    while(index != middlePoint) {
-        const l = copy.get(index);
-        const r = copy.get(length - index - 1);
-        copy.set(index, r);
-        copy.set(copy.length - index - 1, l);
-        index = index +1;
-    }
-    
-    return copy;
-}
-
-const reversed = reverseArray([1, 2, 3]);
-console.log(reversed);

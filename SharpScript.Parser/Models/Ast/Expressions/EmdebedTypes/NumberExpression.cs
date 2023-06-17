@@ -1,6 +1,6 @@
 using SharpScript.Lexer.Models;
 
-namespace SharpScript.Parser.Models.Ast.Expressions;
+namespace SharpScript.Parser.Models.Ast.Expressions.EmdebedTypes;
 
 public class NumberExpression : PrimaryExpression<decimal>
 {

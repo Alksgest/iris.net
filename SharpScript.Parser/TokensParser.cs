@@ -1,8 +1,12 @@
 using SharpScript.Lexer.Models;
+using SharpScript.Parser.Models;
 using SharpScript.Parser.Models.Ast;
 using SharpScript.Parser.Models.Ast.Assignments;
 using SharpScript.Parser.Models.Ast.Declarations;
 using SharpScript.Parser.Models.Ast.Expressions;
+using SharpScript.Parser.Models.Ast.Expressions.EmdebedTypes;
+using SharpScript.Parser.Models.Ast.Expressions.Functions;
+using SharpScript.Parser.Models.Ast.Expressions.Statements;
 
 namespace SharpScript.Parser;
 
@@ -221,7 +225,7 @@ public class TokensParser
         return ParseExpression();
     }
 
-    private FunctionCall ParseFunctionCall(string value)
+    private FunctionCallExpression ParseFunctionCall(string value)
     {
         _ = Expect(TokenType.Punctuation, "(");
 
@@ -239,7 +243,7 @@ public class TokensParser
 
         _ = Expect(TokenType.Punctuation, ")");
 
-        return new FunctionCall(value, nodes);
+        return new FunctionCallExpression(value, nodes);
     }
 
     private VariableAssignment ParseVariableAssignment(Token nameToken)
@@ -401,7 +405,7 @@ public class TokensParser
                 var token = Expect(TokenType.Identifier).Value;
                 var functionCall = ParseFunctionCall(token);
 
-                return new FunctionCallExpression(token, functionCall);
+                return functionCall;
             }
 
             return new VariableExpression(Expect(TokenType.Identifier).Value);

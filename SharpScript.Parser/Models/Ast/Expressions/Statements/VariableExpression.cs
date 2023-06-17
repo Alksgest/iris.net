@@ -1,6 +1,7 @@
 using SharpScript.Lexer.Models;
+using SharpScript.Parser.Models.Ast.Expressions.EmdebedTypes;
 
-namespace SharpScript.Parser.Models.Ast.Expressions;
+namespace SharpScript.Parser.Models.Ast.Expressions.Statements;
 
 public class VariableExpression : PrimaryExpression<string>
 {

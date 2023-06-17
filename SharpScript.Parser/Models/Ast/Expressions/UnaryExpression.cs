@@ -1,5 +1,8 @@
 namespace SharpScript.Parser.Models.Ast.Expressions;
 
+/// <summary>
+/// Represents unary expression e.g. "-1" or "!true"
+/// </summary>
 public class UnaryExpression : NodeExpression
 {
     public NodeExpression Left { get; }

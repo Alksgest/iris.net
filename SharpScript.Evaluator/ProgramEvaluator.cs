@@ -3,10 +3,14 @@ using SharpScript.Evaluator.Commands;
 using SharpScript.Evaluator.Helpers;
 using SharpScript.Evaluator.Models;
 using SharpScript.Evaluator.StandardLibrary;
+using SharpScript.Parser.Models;
 using SharpScript.Parser.Models.Ast;
 using SharpScript.Parser.Models.Ast.Assignments;
 using SharpScript.Parser.Models.Ast.Declarations;
 using SharpScript.Parser.Models.Ast.Expressions;
+using SharpScript.Parser.Models.Ast.Expressions.EmdebedTypes;
+using SharpScript.Parser.Models.Ast.Expressions.Functions;
+using SharpScript.Parser.Models.Ast.Expressions.Statements;
 
 namespace SharpScript.Evaluator;
 
@@ -37,7 +41,6 @@ public class ProgramEvaluator
             VariableExpression variableExpression => EvaluateVariableExpression(variableExpression, envs),
             FunctionCallExpression functionCallExpression =>
                 EvaluateFunctionCallExpression(functionCallExpression, envs),
-            FunctionCall functionCall => EvaluateFunctionCall(functionCall, envs),
             FunctionDeclaration functionDeclaration => EvaluateFunctionDeclaration(functionDeclaration, envs),
             FunctionAssignmentExpression functionAssignmentExpression => EvaluateFunctionAssignmentExpression(
                 functionAssignmentExpression, envs),
@@ -226,15 +229,15 @@ public class ProgramEvaluator
         List<ScopeEnvironment> envs)
     {
         var args = EvaluateCallArguments(
-            functionCallExpression.FunctionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
+            functionCallExpression.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
             envs);
 
         if (leftValueInScope is ObjectInScope objectInScope)
         {
-            return CallFunctionWithArguments(objectInScope.Value[functionCallExpression.Value], args, leftValueInScope);
+            return CallFunctionWithArguments(objectInScope.Value[functionCallExpression.Name], args, leftValueInScope);
         }
 
-        var method = ObjectHelper.GetNestedMethod(leftValueInScope!, $".{functionCallExpression.Value}",
+        var method = ObjectHelper.GetNestedMethod(leftValueInScope!, $".{functionCallExpression.Name}",
             leftValueInScope.Name);
 
         return CallFunctionWithArguments(method, args, leftValueInScope);
@@ -289,21 +292,16 @@ public class ProgramEvaluator
     }
 
     private object? EvaluateFunctionCallExpression(
-        FunctionCallExpression functionCallExpression,
+        FunctionCallExpression functionCallExpression, 
         List<ScopeEnvironment> environments)
     {
-        return EvaluateFunctionCall(functionCallExpression.FunctionCall, environments);
-    }
-
-    private object? EvaluateFunctionCall(FunctionCall functionCall, List<ScopeEnvironment> environments)
-    {
-        var funcName = functionCall.Name;
+        var funcName = functionCallExpression.Name;
 
         ThrowHelper.ThrowIfNotCallable(environments, funcName);
 
         var func = EnvironmentHelper.GetVariableValue(environments, funcName);
 
-        var args = EvaluateCallArguments(functionCall.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
+        var args = EvaluateCallArguments(functionCallExpression.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
 
         return CallFunctionWithArguments(func, args);
     }
