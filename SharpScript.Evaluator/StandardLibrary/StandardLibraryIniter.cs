@@ -1,8 +1,9 @@
-using System.Linq.Expressions;
 using System.Reflection;
 using SharpScript.Evaluator.Attributes;
+using SharpScript.Evaluator.Attributes.Library;
 using SharpScript.Evaluator.Helpers;
 using SharpScript.Evaluator.Models;
+using SharpScript.Evaluator.Models.WrappedTypes;
 
 namespace SharpScript.Evaluator.StandardLibrary;
 
@@ -16,17 +17,17 @@ public static class StandardLibraryInitializer
 
     public static void Init(List<ScopeEnvironment> environments)
     {
-        var modules = Modules.Where(t => t.GetCustomAttribute(typeof(StandardLibraryModuleAttribute)) != null);
+        var modules = Modules.Where(t => Attribute.IsDefined(t, typeof(StandardLibraryModuleAttributeWithName)));
         foreach (var module in modules)
         {
             var staticMethods = module.GetMethods(BindingFlags.Static | BindingFlags.Public);
             var properties = module.GetProperties(BindingFlags.Static | BindingFlags.Public);
-            
+
             var methodsToRegister = staticMethods
-                .Where(el => el.GetCustomAttribute(typeof(StandardLibraryMethodAttribute)) != null)
+                .Where(el => Attribute.IsDefined(el, typeof(StandardLibraryMethodAttributeWithName)))
                 .ToList();
-            var propertiesToCreate =  properties
-                .Where(el => el.GetCustomAttribute(typeof(StandardLibraryPropertyAttribute)) != null)
+            var propertiesToCreate = properties
+                .Where(el => Attribute.IsDefined(el, typeof(StandardLibraryPropertyAttributeWithName)))
                 .ToList();
 
             var propertyDictionary = new Dictionary<string, object>();
@@ -36,10 +37,10 @@ public static class StandardLibraryInitializer
                 foreach (var method in methodsToRegister)
                 {
                     var methodAnnotation =
-                        method.GetCustomAttribute(typeof(StandardLibraryMethodAttribute)) as
-                            StandardLibraryMethodAttribute;
+                        (method.GetCustomAttribute(typeof(StandardLibraryMethodAttributeWithName)) as
+                            StandardLibraryMethodAttributeWithName)!;
 
-                    propertyDictionary[methodAnnotation!.Name] = method;
+                    propertyDictionary[methodAnnotation.Name] = method;
                 }
             }
 
@@ -48,18 +49,18 @@ public static class StandardLibraryInitializer
                 foreach (var property in propertiesToCreate)
                 {
                     var propertyAnnotation =
-                        property.GetCustomAttribute(typeof(StandardLibraryPropertyAttribute)) as
-                            StandardLibraryPropertyAttribute;
+                        (property.GetCustomAttribute(typeof(StandardLibraryPropertyAttributeWithName)) as
+                            StandardLibraryPropertyAttributeWithName)!;
 
-                    propertyDictionary[propertyAnnotation!.Name] = property.GetValue(module);
+                    propertyDictionary[propertyAnnotation.Name] = property.GetValue(module)!;
                 }
             }
 
             var moduleName =
-                (module.GetCustomAttribute(typeof(StandardLibraryModuleAttribute)) as StandardLibraryModuleAttribute)!
+                (module.GetCustomAttribute(typeof(StandardLibraryModuleAttributeWithName)) as StandardLibraryModuleAttributeWithName)!
                 .Name;
 
-            var objectInScope = new ObjectInScope(propertyDictionary, moduleName);
+            var objectInScope = new WrappedObject(propertyDictionary, moduleName);
 
             EnvironmentHelper.AddVariableToScope(environments, moduleName, objectInScope);
         }

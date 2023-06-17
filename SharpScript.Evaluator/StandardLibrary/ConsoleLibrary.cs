@@ -1,11 +1,12 @@
 using SharpScript.Evaluator.Attributes;
+using SharpScript.Evaluator.Attributes.Library;
 
 namespace SharpScript.Evaluator.StandardLibrary;
 
-[StandardLibraryModule("console")]
+[StandardLibraryModuleAttributeWithName("console")]
 internal static class ConsoleLibrary
 {
-    [StandardLibraryMethod("log")] 
+    [StandardLibraryMethodAttributeWithName("log")] 
     public static void Print(params object[] args)
     {
         if (args.Length == 0)

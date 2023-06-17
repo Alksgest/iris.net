@@ -1,12 +1,14 @@
 using System.Reflection;
 using SharpScript.Evaluator.Attributes;
+using SharpScript.Evaluator.Attributes.Objects;
 using SharpScript.Evaluator.Models;
+using SharpScript.Evaluator.Models.WrappedTypes;
 
 namespace SharpScript.Evaluator.Helpers;
 
 internal static class ObjectHelper
 {
-    internal static object? GetPropertyValue(EmbeddedEntityInScope obj, string propertyName)
+    internal static object? GetPropertyValue(WrappedEntity obj, string propertyName)
     {
         var type = obj.GetType();
         var properties = type
@@ -33,7 +35,7 @@ internal static class ObjectHelper
         return property.GetValue(obj);
     }
     
-    internal static MethodInfo GetNestedMethod(EmbeddedEntityInScope obj, string path, string rootName)
+    internal static MethodInfo GetNestedMethod(WrappedEntity obj, string methodName, string rootName)
     {
         var type = obj.GetType();
         var methods = type
@@ -41,18 +43,11 @@ internal static class ObjectHelper
             .Where(el => Attribute.IsDefined(el, typeof(NestedMethodAttribute)))
             .ToList();
 
-        var splitted = path.Split(".");
-
         if (methods.Count == 0)
         {
             throw new ArgumentException($"There are no known methods in object {rootName}");
         }
         
-        // TODO: supports only one level depth
-        // TODO: add support of any depth in future
-
-        var methodName = splitted[1];
-
         var method = methods.SingleOrDefault(el =>
         {
             var attr = el.GetCustomAttribute(typeof(NestedMethodAttribute)) as NestedMethodAttribute;

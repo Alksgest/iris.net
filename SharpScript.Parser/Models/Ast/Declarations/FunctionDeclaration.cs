@@ -1,5 +1,3 @@
-using SharpScript.Parser.Models.Ast.Expressions;
-
 namespace SharpScript.Parser.Models.Ast.Declarations;
 
 public class FunctionDeclaration : Node

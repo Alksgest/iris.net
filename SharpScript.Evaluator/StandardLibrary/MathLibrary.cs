@@ -1,16 +1,17 @@
 using SharpScript.Evaluator.Attributes;
+using SharpScript.Evaluator.Attributes.Library;
 
 namespace SharpScript.Evaluator.StandardLibrary;
 
-[StandardLibraryModule("math")]
+[StandardLibraryModuleAttributeWithName("math")]
 internal static class MathLibrary
 {
     private static readonly Random Random = new();
 
-    [StandardLibraryProperty("pi")]
+    [StandardLibraryPropertyAttributeWithName("pi")]
     public static double Pi => Math.PI;
 
-    [StandardLibraryMethod("rand")]
+    [StandardLibraryMethodAttributeWithName("rand")]
     public static decimal GetRandomNumber(decimal l, decimal r)
     {
         var ll = (int)l;

@@ -1,4 +1,4 @@
-namespace SharpScript.Parser.Models.Ast.Expressions.Functions;
+namespace SharpScript.Parser.Models.Ast.Expressions.EmbeddedTypes;
 
 public class FunctionCallExpression : NodeExpression
 {

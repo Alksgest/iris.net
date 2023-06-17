@@ -5,7 +5,6 @@ using SharpScript.Parser.Models.Ast.Assignments;
 using SharpScript.Parser.Models.Ast.Declarations;
 using SharpScript.Parser.Models.Ast.Expressions;
 using SharpScript.Parser.Models.Ast.Expressions.EmbeddedTypes;
-using SharpScript.Parser.Models.Ast.Expressions.Functions;
 using SharpScript.Parser.Models.Ast.Expressions.Statements;
 
 namespace SharpScript.Parser;

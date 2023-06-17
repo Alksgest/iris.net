@@ -9,4 +9,3 @@ public enum TokenType
     Keyword,
     Punctuation
 }
-

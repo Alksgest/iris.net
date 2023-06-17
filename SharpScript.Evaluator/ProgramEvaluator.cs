@@ -2,6 +2,7 @@ using System.Reflection;
 using SharpScript.Evaluator.Commands;
 using SharpScript.Evaluator.Helpers;
 using SharpScript.Evaluator.Models;
+using SharpScript.Evaluator.Models.WrappedTypes;
 using SharpScript.Evaluator.StandardLibrary;
 using SharpScript.Parser.Models;
 using SharpScript.Parser.Models.Ast;
@@ -9,7 +10,6 @@ using SharpScript.Parser.Models.Ast.Assignments;
 using SharpScript.Parser.Models.Ast.Declarations;
 using SharpScript.Parser.Models.Ast.Expressions;
 using SharpScript.Parser.Models.Ast.Expressions.EmbeddedTypes;
-using SharpScript.Parser.Models.Ast.Expressions.Functions;
 using SharpScript.Parser.Models.Ast.Expressions.Statements;
 
 namespace SharpScript.Evaluator;
@@ -205,26 +205,26 @@ public class ProgramEvaluator
     {
         var left = Evaluate(binaryExpression.Left, envs)!;
 
-        EmbeddedEntityInScope leftValueInScope = left switch
+        WrappedEntity leftValue = left switch
         {
-            List<object> list => new ArrayInScope(list),
-            Dictionary<string, object> dict => new ObjectInScope(dict),
-            string str => new StringValueInScope(str),
-            decimal d => new NumberValueInScope(d),
+            List<object> list => new WrappedArray(list),
+            Dictionary<string, object> dict => new WrappedObject(dict),
+            string str => new WrappedString(str),
+            decimal d => new WrappedNumber(d),
             _ => throw new ArgumentOutOfRangeException()
         };
 
         return binaryExpression.Right switch
         {
-            FunctionCallExpression functionCallExpression => HandleFunctionCallExpression(leftValueInScope,
+            FunctionCallExpression functionCallExpression => HandleFunctionCallExpression(leftValue,
                 functionCallExpression, envs),
-            VariableExpression expression => HandleVariableExpression(leftValueInScope, expression),
+            VariableExpression expression => HandleVariableExpression(leftValue, expression),
             _ => null
         };
     }
 
     private object? HandleFunctionCallExpression(
-        EmbeddedEntityInScope leftValueInScope,
+        WrappedEntity leftValue,
         FunctionCallExpression functionCallExpression,
         List<ScopeEnvironment> envs)
     {
@@ -232,25 +232,27 @@ public class ProgramEvaluator
             functionCallExpression.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
             envs);
 
-        if (leftValueInScope is ObjectInScope objectInScope)
+        if (leftValue is WrappedObject objectInScope)
         {
-            return CallFunctionWithArguments(objectInScope.Value[functionCallExpression.Name], args, leftValueInScope);
+            return CallFunctionWithArguments(objectInScope.Value[functionCallExpression.Name], args, leftValue);
         }
 
-        var method = ObjectHelper.GetNestedMethod(leftValueInScope!, $".{functionCallExpression.Name}",
-            leftValueInScope.Name);
+        var method = ObjectHelper.GetNestedMethod(
+            leftValue!,
+            functionCallExpression.Name,
+            leftValue.Name);
 
-        return CallFunctionWithArguments(method, args, leftValueInScope);
+        return CallFunctionWithArguments(method, args, leftValue);
     }
 
-    private object? HandleVariableExpression(EmbeddedEntityInScope leftValueInScope, VariableExpression expression)
+    private object? HandleVariableExpression(WrappedEntity leftValue, VariableExpression expression)
     {
-        if (leftValueInScope is ObjectInScope objectInScope)
+        if (leftValue is WrappedObject objectInScope)
         {
             return objectInScope.Value[expression.Value];
         }
 
-        return ObjectHelper.GetPropertyValue(leftValueInScope, expression.Value);
+        return ObjectHelper.GetPropertyValue(leftValue, expression.Value);
     }
 
     private object? EvaluateFunctionDeclaration(
@@ -292,7 +294,7 @@ public class ProgramEvaluator
     }
 
     private object? EvaluateFunctionCallExpression(
-        FunctionCallExpression functionCallExpression, 
+        FunctionCallExpression functionCallExpression,
         List<ScopeEnvironment> environments)
     {
         var funcName = functionCallExpression.Name;
@@ -301,7 +303,8 @@ public class ProgramEvaluator
 
         var func = EnvironmentHelper.GetVariableValue(environments, funcName);
 
-        var args = EvaluateCallArguments(functionCallExpression.Values?.ToArray() ?? Array.Empty<NodeExpression>(), environments);
+        var args = EvaluateCallArguments(functionCallExpression.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
+            environments);
 
         return CallFunctionWithArguments(func, args);
     }

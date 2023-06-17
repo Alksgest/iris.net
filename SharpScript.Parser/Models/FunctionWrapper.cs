@@ -1,5 +1,3 @@
-using SharpScript.Parser.Models.Ast;
-using SharpScript.Parser.Models.Ast.Expressions;
 using SharpScript.Parser.Models.Ast.Expressions.EmbeddedTypes;
 using SharpScript.Parser.Models.Ast.Expressions.Statements;
 

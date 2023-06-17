@@ -1,5 +1,6 @@
 using System.Reflection;
 using SharpScript.Evaluator.Models;
+using SharpScript.Evaluator.Models.WrappedTypes;
 
 namespace SharpScript.Evaluator.Helpers;
 
@@ -7,17 +8,12 @@ internal static class EnvironmentHelper
 {
     internal static object? GetVariableValue(IEnumerable<ScopeEnvironment> environments, string name)
     {
-        var env = environments.LastOrDefault(env => env.Variables.ContainsKey(name));
+        var objectInScope = GetVariableInScope(environments, name);
 
-        if (env == null)
-        {
-            throw new Exception($"Variable {name} is not declared");
-        }
-
-        return env.Variables[name]?.Object;
+        return objectInScope?.Object;
     }
-    
-    internal static EmbeddedEntityInScope? GetVariableInScope(IEnumerable<ScopeEnvironment> environments, string name)
+
+    private static WrappedEntity? GetVariableInScope(IEnumerable<ScopeEnvironment> environments, string name)
     {
         var env = environments.LastOrDefault(env => env.Variables.ContainsKey(name));
 
@@ -29,7 +25,6 @@ internal static class EnvironmentHelper
         return env.Variables[name];
     }
 
-    // TODO: add additional type?
     internal static void SetVariableValue(IEnumerable<ScopeEnvironment> environments, string name, object value)
     {
         var env = environments.SingleOrDefault(env => env.Variables.ContainsKey(name));
@@ -39,56 +34,51 @@ internal static class EnvironmentHelper
             throw new Exception($"Variable {name} is not declared");
         }
 
-        CreateEmbeddedEntityInScope(env, name, value);
+        env.Variables[name] = CreateWrappedEntity(name, value);
     }
     
     internal static void DeclareVariable(IEnumerable<ScopeEnvironment> envs, string name, object? value)
     {
         var environments = envs.ToList();
 
-        var env = environments.SingleOrDefault(env => env.Variables.ContainsKey(name));
+        // we can declare variable only in the last scope
+        var lastEnv = environments.Last();
 
-        if (env == null)
+        if (lastEnv.Variables.ContainsKey(name))
         {
-            var lastEnv = environments.Last();
-            CreateEmbeddedEntityInScope(lastEnv, name, value);
-            return;
+            throw new Exception($"Variable {name} is already declared");
         }
-        
-        //TODO: debug this line
-        CreateEmbeddedEntityInScope(env, name, value);//TODO: probably mistake, exception should be thrown
+
+        lastEnv.Variables[name] = CreateWrappedEntity(name, value);
     }
     
-    internal static void AddVariableToScope(IEnumerable<ScopeEnvironment> envs, string name, EmbeddedEntityInScope value)
+    internal static void AddVariableToScope(IEnumerable<ScopeEnvironment> envs, string name, WrappedEntity value)
     {
         var environments = envs.ToList();
 
-        var env = environments.SingleOrDefault(env => env.Variables.ContainsKey(name));
+        var lastEnv = environments.Last();
 
-        if (env == null)
+        if (lastEnv.Variables.ContainsKey(name))
         {
-            var lastEnv = environments.Last();
-            lastEnv.Variables[name] = value;
-            return;
+            throw new Exception($"Variable {name} is already declared");
         }
         
-        //TODO: debug this line
-        CreateEmbeddedEntityInScope(env, name, value);//TODO: probably mistake, exception should be thrown
+        lastEnv.Variables[name] = value;
     }
 
-    private static void CreateEmbeddedEntityInScope(ScopeEnvironment scope, string name, object? value)
+    private static WrappedEntity? CreateWrappedEntity(string name, object? value)
     {
-        EmbeddedEntityInScope? objectInScope = value switch
+        WrappedEntity? wrappedEntity = value switch
         {
-            string str => new StringValueInScope(str, name),
-            decimal d => new NumberValueInScope(d, name),
-            bool b => new PrimitiveValueInScope<bool>(b, name),
-            Delegate del => new DelegateInScope(del, name),
-            MethodInfo m => new MethodInScope(m, name),
-            List<object> l => new ArrayInScope(l, name),
+            string str => new WrappedString(str, name),
+            decimal d => new WrappedNumber(d, name),
+            bool b => new WrappedBoolean(b, name),
+            Delegate del => new WrappedDelegate(del, name),
+            MethodInfo m => new WrappedMethod(m, name),
+            List<object> l => new WrappedArray(l, name),
             _ => null
         };
-        
-        scope.Variables[name] = objectInScope;
+
+        return wrappedEntity;
     }
 }
