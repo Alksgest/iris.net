@@ -13,4 +13,9 @@ public class ScopeEnvironment
         Name = name;
         Id = Guid.NewGuid();
     }
+
+    public void Clear()
+    {
+        Variables.Clear();
+    }
 }

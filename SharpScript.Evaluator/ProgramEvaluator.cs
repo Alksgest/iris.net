@@ -49,7 +49,8 @@ public class ProgramEvaluator
             BinaryExpression { Operator: "." } binaryExpression => EvaluateDotOperator(binaryExpression, envs),
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression, envs),
             UnaryExpression unaryExpression => EvaluateUnaryExpression(unaryExpression, envs),
-            BreakableScopeNode breakableScopeNode => EvaluateBreakableScopeNode(breakableScopeNode, envs),
+            FunctionScopedNode functionScopedNode => EvaluateFunctionScopeNode(functionScopedNode, envs),
+            BreakableScopedNode breakableScopeNode => EvaluateBreakableScopeNode(breakableScopeNode, envs),
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
@@ -69,64 +70,109 @@ public class ProgramEvaluator
 
         return result;
     }
-
-    private object? EvaluateScopedNode(ScopedNode scopedNode, IReadOnlyCollection<ScopeEnvironment> environments)
+    
+    private object? EvaluateFunctionScopeNode(FunctionScopedNode functionScopedNode, List<ScopeEnvironment> envs)
     {
-        object? result = null;
-
-        var localEnv = new ScopeEnvironment($"Local_{environments.Count + 1}");
-
-        var newEnvs = new List<ScopeEnvironment>(environments) { localEnv };
-
-        foreach (var statement in scopedNode.Statements)
+        var localEnv = new ScopeEnvironment($"Function_local_{envs.Count + 1}");
+        var newEnvs = new List<ScopeEnvironment>(envs) { localEnv };
+        
+        foreach (var statement in functionScopedNode.Statements)
         {
-            result = Evaluate(statement, newEnvs);
+            var result = Evaluate(statement, newEnvs);
+
+            if (result is ReturnCommand rc)
+            {
+                localEnv.Clear();
+                return rc.Value;
+            }
+            
             if (statement is ReturnExpression)
             {
+                localEnv.Clear();
                 return result;
             }
         }
 
-        newEnvs.Clear();
+        localEnv.Clear();
+        return null;
+    }
 
-        return result;
+    private object? EvaluateScopedNode(ScopedNode scopedNode, IReadOnlyCollection<ScopeEnvironment> environments)
+    {
+        var localEnv = new ScopeEnvironment($"Local_{environments.Count + 1}");
+        var newEnvs = new List<ScopeEnvironment>(environments) { localEnv };
+        
+        foreach (var statement in scopedNode.Statements)
+        {
+            var result = Evaluate(statement, newEnvs);
+
+            if (result is ReturnCommand rc)
+            {
+                localEnv.Clear();
+                return rc;
+            }
+            
+            if (statement is ReturnExpression)
+            {
+                localEnv.Clear();
+                return new ReturnCommand(result);
+            }
+        }
+
+        localEnv.Clear();
+        return null;
     }
 
     private object? EvaluateBreakableScopeNode(
         ScopedNode scopedNode,
         IReadOnlyCollection<ScopeEnvironment> environments)
     {
-        object? result = null;
-
         var localEnv = new ScopeEnvironment($"Local_{environments.Count + 1}");
 
         var newEnvs = new List<ScopeEnvironment>(environments) { localEnv };
 
         foreach (var statement in scopedNode.Statements)
         {
+            var result = Evaluate(statement, newEnvs);
+
+            if (result is ReturnCommand rc)
+            {
+                localEnv.Clear();
+                return rc;
+            }
+            
+            if (statement is ReturnExpression)
+            {
+                localEnv.Clear();
+                return new ReturnCommand(result);
+            }
+            
             if (statement is BreakExpression)
             {
+                localEnv.Clear();
                 return new BreakCommand();
             }
-
-            result = Evaluate(statement, newEnvs);
         }
 
-        newEnvs.Clear();
-
-        return result;
+        localEnv.Clear();
+        return null;
     }
 
     private object? EvaluateWhileExpression(WhileExpression whileExpression, List<ScopeEnvironment> envs)
     {
-        // TODO: probably add logic for avoiding 'while(true)'
         var condition = (bool)Evaluate(whileExpression.Condition, envs)!;
         while (condition)
         {
             var result = Evaluate(whileExpression.Body, envs);
+
             if (result is BreakCommand)
             {
                 break;
+            }
+
+            if (result is ReturnCommand rc)
+            {
+                return rc;
             }
 
             condition = (bool)Evaluate(whileExpression.Condition, envs)!;

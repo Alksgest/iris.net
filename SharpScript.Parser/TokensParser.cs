@@ -71,7 +71,7 @@ public class TokensParser
         {
             _ = Expect(TokenType.Keyword, "while");
             var condition = ParseExpression();
-            var body = ParseScopedNode(true) as BreakableScopeNode;
+            var body = ParseScopedNode(ScopeType.Breakable) as BreakableScopedNode;
 
             return new WhileExpression(condition, body!);
         }
@@ -99,7 +99,7 @@ public class TokensParser
 
             var name = Expect(TokenType.Identifier).Value;
             var arguments = ParseFunctionArguments();
-            var functionBody = ParseScopedNode();
+            var functionBody = ParseScopedNode(ScopeType.Function);
 
             var function = new FunctionWrapper(functionBody, arguments);
 
@@ -120,7 +120,7 @@ public class TokensParser
 
         if (Match(TokenType.Punctuation, "{"))
         {
-            var node = ParseScopedNode();
+            var node = ParseScopedNode(ScopeType.Ordinary);
             return node;
         }
 
@@ -184,12 +184,18 @@ public class TokensParser
         return new ConditionalExpression(condition, trueStatement, falseStatement);
     }
 
-    private ScopedNode ParseScopedNode(bool isBreakable = false)
+    private ScopedNode ParseScopedNode(ScopeType type)
     {
         _ = Expect(TokenType.Punctuation, "{");
 
-        var scopedNode = isBreakable ? new BreakableScopeNode() : new ScopedNode();
-
+        var scopedNode = type switch
+        {
+            ScopeType.Ordinary => new ScopedNode(),
+            ScopeType.Breakable => new BreakableScopedNode(),
+            ScopeType.Function => new FunctionScopedNode(),
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
+        
         while (!Match(TokenType.Punctuation, "}"))
         {
             var node = ParseStatement();
@@ -416,7 +422,7 @@ public class TokensParser
             _ = Expect(TokenType.Keyword, "function");
 
             var arguments = ParseFunctionArguments();
-            var body = ParseScopedNode();
+            var body = ParseScopedNode(ScopeType.Function);
 
             var function = new FunctionWrapper(body, arguments);
             return new FunctionExpression(function);

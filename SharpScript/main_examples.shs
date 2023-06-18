@@ -276,3 +276,18 @@ const obj = {
 
 obj.func();
 console.log(obj.value);
+
+function ff(){
+    while(false) {
+     {
+       {
+         return 155;
+       }
+     }
+    }
+    
+    return 166;
+}
+
+const val = ff();
+console.log(val);
