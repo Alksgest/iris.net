@@ -1,5 +1,6 @@
 namespace Iris.Net.Parser.Models.Ast.Expressions.EmbeddedTypes;
 
+[Serializable]
 public class FunctionExpression : PrimaryExpression<FunctionWrapper>
 {
 

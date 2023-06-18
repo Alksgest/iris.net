@@ -1,5 +1,6 @@
 namespace Iris.Net.Parser.Models.Ast.Expressions.Statements;
 
+[Serializable]
 public class ScopedNode : Node
 {
     public List<Node> Statements { get; } = new();

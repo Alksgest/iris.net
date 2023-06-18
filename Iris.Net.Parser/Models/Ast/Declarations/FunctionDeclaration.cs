@@ -1,5 +1,6 @@
 namespace Iris.Net.Parser.Models.Ast.Declarations;
 
+[Serializable]
 public class FunctionDeclaration : Node
 {
     public FunctionWrapper Function { get; set; }

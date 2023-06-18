@@ -1,8 +1,15 @@
 ﻿using Iris.Net.Evaluator;
 using Iris.Net.Lexer;
 using Iris.Net.Parser;
+using System;
 
 namespace Iris.Net;
+
+public enum IrisCommands
+{
+    Start = 0,
+    Build
+}
 
 public static class Program
 {
@@ -17,22 +24,48 @@ public static class Program
             Console.WriteLine(arg);
         }
 
-        if (args.Length == 0)
+        // if (args.Length == 0)
+        // {
+        //     ConsoleHelper.SetErrorColor();
+        //     Console.WriteLine("No file or command to execute");
+        //     ConsoleHelper.ResetColor();
+        //     return;
+        // }
+
+        var fileOrCommand = "build" ?? args[0];
+
+        var isCommand = Enum
+            .GetNames(typeof(IrisCommands))
+            .Select(el => el.ToLower())
+            .Contains(fileOrCommand);
+
+        if (isCommand)
         {
-            Console.WriteLine("No file to execute");
-            return;
+            _ = Enum.TryParse(string.Concat(fileOrCommand[..1].ToUpper(), fileOrCommand.AsSpan(1)),
+                out IrisCommands command);
+
+            switch (command)
+            {
+                case IrisCommands.Start:
+                    break;
+                case IrisCommands.Build:
+                    ProjectBuilder.Build();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
+        else
+        {
+            var tokenizer = new Tokenizer();
 
-        var fileName = args[0];
+            var fileContent = File.ReadAllText(fileOrCommand);
 
-        var tokenizer = new Tokenizer();
-
-        var fileContent = File.ReadAllText(fileName);
-
-        var tokens = tokenizer.Process(fileContent);
-        var parser = new TokensParser(tokens); 
-        var tree = parser.ParseTokens();
-        var evaluator = new ProgramEvaluator();
-        evaluator.Evaluate(tree);
+            var tokens = tokenizer.Process(fileContent);
+            var parser = new TokensParser(tokens);
+            var tree = parser.ParseTokens();
+            var evaluator = new ProgramEvaluator();
+            evaluator.Evaluate(tree);
+        }
     }
 }

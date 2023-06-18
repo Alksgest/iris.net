@@ -1,5 +1,6 @@
 namespace Iris.Net.Parser.Models.Ast;
 
+[Serializable]
 public abstract class Node
 {
     /// <summary>

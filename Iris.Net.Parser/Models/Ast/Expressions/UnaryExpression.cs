@@ -3,6 +3,7 @@ namespace Iris.Net.Parser.Models.Ast.Expressions;
 /// <summary>
 /// Represents unary expression e.g. "-1" or "!true"
 /// </summary>
+[Serializable]
 public class UnaryExpression : NodeExpression
 {
     public NodeExpression Left { get; }

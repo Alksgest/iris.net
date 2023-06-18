@@ -1,5 +1,6 @@
 namespace Iris.Net.Parser.Models.Ast.Expressions.Statements;
 
+[Serializable]
 public class WhileExpression : NodeExpression
 {
     public NodeExpression Condition { get; set; }

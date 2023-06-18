@@ -3,6 +3,7 @@ using Iris.Net.Parser.Models.Ast.Expressions.Statements;
 
 namespace Iris.Net.Parser.Models;
 
+[Serializable]
 public class FunctionWrapper
 {
     public ScopedNode Body { get; }

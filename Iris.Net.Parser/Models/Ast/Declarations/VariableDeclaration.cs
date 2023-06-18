@@ -1,5 +1,6 @@
 namespace Iris.Net.Parser.Models.Ast.Declarations;
 
+[Serializable]
 public class VariableDeclaration : Node
 {
     public Node? Value { get; }

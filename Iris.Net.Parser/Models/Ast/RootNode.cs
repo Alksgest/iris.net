@@ -1,5 +1,6 @@
 namespace Iris.Net.Parser.Models.Ast;
 
+[Serializable]
 public class RootNode : Node
 {
     public List<Node> Statements { get; }

@@ -2,6 +2,7 @@ using Iris.Net.Parser.Models.Ast.Expressions;
 
 namespace Iris.Net.Parser.Models.Ast.Assignments;
 
+[Serializable]
 public class VariableAssignment : Node
 {
     public NodeExpression Value { get; }
