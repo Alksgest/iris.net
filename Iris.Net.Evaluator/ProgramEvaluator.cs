@@ -354,7 +354,7 @@ public class ProgramEvaluator
         return ObjectHelper.GetPropertyValue(leftValue, expression.Value);
     }
 
-    private object EvaluateFunctionDeclaration(
+    private Func<object[], object?> EvaluateFunctionDeclaration(
         FunctionDeclaration functionDeclaration,
         IReadOnlyCollection<ScopeEnvironment> envs)
     {
@@ -364,7 +364,7 @@ public class ProgramEvaluator
         return Func;
     }
 
-    private object EvaluateFunctionAssignmentExpression(
+    private Func<object[], object?> EvaluateFunctionAssignmentExpression(
         FunctionExpression functionExpression,
         IReadOnlyCollection<ScopeEnvironment> envs)
     {
