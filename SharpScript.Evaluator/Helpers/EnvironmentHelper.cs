@@ -36,7 +36,7 @@ internal static class EnvironmentHelper
 
         env.Variables[name] = CreateWrappedEntity(name, value);
     }
-    
+
     internal static void DeclareVariable(IEnumerable<ScopeEnvironment> envs, string name, object? value)
     {
         var environments = envs.ToList();
@@ -51,7 +51,7 @@ internal static class EnvironmentHelper
 
         lastEnv.Variables[name] = CreateWrappedEntity(name, value);
     }
-    
+
     internal static void AddVariableToScope(IEnumerable<ScopeEnvironment> envs, string name, WrappedEntity value)
     {
         var environments = envs.ToList();
@@ -62,7 +62,7 @@ internal static class EnvironmentHelper
         {
             throw new Exception($"Variable {name} is already declared");
         }
-        
+
         lastEnv.Variables[name] = value;
     }
 
@@ -76,6 +76,7 @@ internal static class EnvironmentHelper
             Delegate del => new WrappedDelegate(del, name),
             MethodInfo m => new WrappedMethod(m, name),
             List<object> l => new WrappedArray(l, name),
+            Dictionary<string, object> dict => new WrappedDictionary(dict),
             _ => null
         };
 

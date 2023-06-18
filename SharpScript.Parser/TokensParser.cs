@@ -43,11 +43,7 @@ public class TokensParser
         {
             _ = Expect(TokenType.Keyword, "const");
             var node = ParseConstVariableDeclaration();
-            if (!MatchPrev(TokenType.Punctuation, "}"))
-            {
-                _ = Expect(TokenType.Punctuation, ";");
-            }
-
+            _ = Expect(TokenType.Punctuation, ";");
             return node;
         }
 
@@ -87,7 +83,7 @@ public class TokensParser
 
             return new BreakExpression();
         }
-        
+
         if (Match(TokenType.Keyword, "return"))
         {
             _ = Expect(TokenType.Keyword, "return");
@@ -327,6 +323,12 @@ public class TokensParser
             return node;
         }
 
+        if (Match(TokenType.Punctuation, "{"))
+        {
+            var node = ParseDictionaryExpression();
+            return node;
+        }
+
         if (Match(TokenType.Operator, "-") || Match(TokenType.Operator, "!"))
         {
             var op = Expect(TokenType.Operator).Value;
@@ -337,6 +339,29 @@ public class TokensParser
         }
 
         return ParsePrimary();
+    }
+
+    private DictionaryExpression ParseDictionaryExpression()
+    {
+        _ = Expect(TokenType.Punctuation, "{");
+        var pairs = new List<KeyValuePair<string, NodeExpression>>();
+        while (!Match(TokenType.Punctuation, "}"))
+        {
+            var key = Expect(TokenType.Identifier);
+            _ = Expect(TokenType.Operator, "=");
+            var expression = ParseExpression();
+
+            pairs.Add(new KeyValuePair<string, NodeExpression>(key.Value, expression));
+
+            if (Match(TokenType.Punctuation, ","))
+            {
+                _ = Expect(TokenType.Punctuation, ",");
+            }
+        }
+
+        _ = Expect(TokenType.Punctuation, "}");
+
+        return new DictionaryExpression(pairs);
     }
 
     private ArrayExpression ParseArrayExpression()

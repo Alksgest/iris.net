@@ -266,3 +266,13 @@ function test(number) {
 const f = test(157);
 
 f();
+
+const obj = {
+    func = function() {
+        console.log("func!!!");
+    },
+    value = 10,
+};
+
+obj.func();
+console.log(obj.value);

@@ -37,6 +37,8 @@ public class ProgramEvaluator
             BooleanExpression booleanExpression => EvaluateBooleanExpression(booleanExpression),
             StringExpression stringExpression => EvaluateStringExpression(stringExpression),
             ObjectExpression objectExpression => objectExpression.Value,
+            ArrayExpression arrayExpression => EvaluateArrayExpression(arrayExpression, envs),
+            DictionaryExpression dictionaryExpression => EvaluateDictionaryExpression(dictionaryExpression, envs),
             NullExpression _ => null,
             VariableExpression variableExpression => EvaluateVariableExpression(variableExpression, envs),
             FunctionCallExpression functionCallExpression =>
@@ -47,7 +49,6 @@ public class ProgramEvaluator
             BinaryExpression { Operator: "." } binaryExpression => EvaluateDotOperator(binaryExpression, envs),
             BinaryExpression binaryExpression => EvaluateBinaryExpression(binaryExpression, envs),
             UnaryExpression unaryExpression => EvaluateUnaryExpression(unaryExpression, envs),
-            ArrayExpression arrayExpression => EvaluateArrayExpression(arrayExpression, envs),
             BreakableScopeNode breakableScopeNode => EvaluateBreakableScopeNode(breakableScopeNode, envs),
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
@@ -152,11 +153,27 @@ public class ProgramEvaluator
         return null;
     }
 
-    private object EvaluateArrayExpression(ArrayExpression arrayExpression, List<ScopeEnvironment> envs)
+    private List<object?> EvaluateArrayExpression(
+        ArrayExpression arrayExpression,
+        List<ScopeEnvironment> envs)
     {
         var elements = arrayExpression.Value.Select((el) => Evaluate(el, envs));
 
         return new List<object?>(elements);
+    }
+
+    private Dictionary<string, object> EvaluateDictionaryExpression(
+        DictionaryExpression dictionaryExpression,
+        List<ScopeEnvironment> envs)
+    {
+        var pairs = dictionaryExpression
+            .Value
+            .ToDictionary(
+                kvp => kvp.Key,
+                kvp => Evaluate(kvp.Value, envs)
+            );
+
+        return new Dictionary<string, object>(pairs!);
     }
 
     private object EvaluateUnaryExpression(UnaryExpression unaryExpression, List<ScopeEnvironment> envs)
@@ -208,7 +225,7 @@ public class ProgramEvaluator
         WrappedEntity leftValue = left switch
         {
             List<object> list => new WrappedArray(list),
-            Dictionary<string, object> dict => new WrappedObject(dict),
+            Dictionary<string, object> dict => new WrappedDictionary(dict),
             string str => new WrappedString(str),
             decimal d => new WrappedNumber(d),
             _ => throw new ArgumentOutOfRangeException()
@@ -232,7 +249,7 @@ public class ProgramEvaluator
             functionCallExpression.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
             envs);
 
-        if (leftValue is WrappedObject objectInScope)
+        if (leftValue is WrappedDictionary objectInScope)
         {
             return CallFunctionWithArguments(objectInScope.Value[functionCallExpression.Name], args, leftValue);
         }
@@ -245,9 +262,9 @@ public class ProgramEvaluator
         return CallFunctionWithArguments(method, args, leftValue);
     }
 
-    private object? HandleVariableExpression(WrappedEntity leftValue, VariableExpression expression)
+    private static object? HandleVariableExpression(WrappedEntity leftValue, VariableExpression expression)
     {
-        if (leftValue is WrappedObject objectInScope)
+        if (leftValue is WrappedDictionary objectInScope)
         {
             return objectInScope.Value[expression.Value];
         }

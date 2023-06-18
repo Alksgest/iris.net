@@ -1,9 +1,0 @@
-function test(number) {
-    return function () {
-           console.log(number);
-       };
-}
-
-const f = test(157);
-
-f();

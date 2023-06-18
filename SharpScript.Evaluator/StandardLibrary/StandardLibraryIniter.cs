@@ -60,7 +60,7 @@ public static class StandardLibraryInitializer
                 (module.GetCustomAttribute(typeof(StandardLibraryModuleAttributeWithName)) as StandardLibraryModuleAttributeWithName)!
                 .Name;
 
-            var objectInScope = new WrappedObject(propertyDictionary, moduleName);
+            var objectInScope = new WrappedDictionary(propertyDictionary, moduleName);
 
             EnvironmentHelper.AddVariableToScope(environments, moduleName, objectInScope);
         }
