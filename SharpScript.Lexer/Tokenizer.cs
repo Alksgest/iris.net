@@ -38,7 +38,10 @@ public class Tokenizer
     private readonly List<string>
         _keyWords = new()
         {
-            "const", "let", "if", "else", "true", "false", "while", "null", "function", "break", "return"
+            "const", "let", "if", "else",
+            "true", "false", "while", "null",
+            "function", "break", "return", "foreach",
+            "in"
         }; // remove const, add mut
 
     private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };

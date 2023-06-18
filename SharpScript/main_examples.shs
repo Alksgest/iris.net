@@ -291,3 +291,23 @@ function ff(){
 
 const val = ff();
 console.log(val);
+
+const arr = [1, 2, 3];
+foreach(const el in arr) {
+    console.log(el);
+}
+
+const copyArray = function (arr) {
+    const buffer = [];
+    
+    foreach(const el in arr) {
+        buffer.add(el);
+    }
+    
+    return buffer;
+};
+
+const arr = [1, 2, 3];
+const copy = copyArray(arr);
+console.log(arr);
+console.log(copy);

@@ -75,6 +75,31 @@ public class TokensParser
 
             return new WhileExpression(condition, body!);
         }
+        
+        if (Match(TokenType.Keyword, "foreach"))
+        {
+            var hasParentheses = false;
+            _ = Expect(TokenType.Keyword, "foreach");
+            if (Match(TokenType.Punctuation, "("))
+            {
+                hasParentheses = true;
+                _ = Expect(TokenType.Punctuation, "(");
+            }
+            _ = Expect(TokenType.Keyword, "const");
+            var token = Expect(TokenType.Identifier);
+            var variableExpression = new VariableExpression(token.Value);
+            _ = Expect(TokenType.Keyword, "in");
+            var iEnumerable = ParseExpression();
+            
+            if (hasParentheses)
+            {
+                _ = Expect(TokenType.Punctuation, ")");
+            }
+            
+            var body = ParseScopedNode(ScopeType.Breakable) as BreakableScopedNode;
+
+            return new ForeachExpression(variableExpression, iEnumerable, body!);
+        }
 
         if (Match(TokenType.Keyword, "break"))
         {
@@ -323,18 +348,6 @@ public class TokensParser
             return expr;
         }
 
-        if (Match(TokenType.Punctuation, "["))
-        {
-            var node = ParseArrayExpression();
-            return node;
-        }
-
-        if (Match(TokenType.Punctuation, "{"))
-        {
-            var node = ParseDictionaryExpression();
-            return node;
-        }
-
         if (Match(TokenType.Operator, "-") || Match(TokenType.Operator, "!"))
         {
             var op = Expect(TokenType.Operator).Value;
@@ -439,6 +452,18 @@ public class TokensParser
             }
 
             return new VariableExpression(Expect(TokenType.Identifier).Value);
+        }
+        
+        if (Match(TokenType.Punctuation, "["))
+        {
+            var node = ParseArrayExpression();
+            return node;
+        }
+
+        if (Match(TokenType.Punctuation, "{"))
+        {
+            var node = ParseDictionaryExpression();
+            return node;
         }
 
         throw new Exception("Unexpected expression");

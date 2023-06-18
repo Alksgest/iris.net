@@ -1,14 +1,14 @@
-function ff(){
-    while(false) {
-     {
-       {
-         return 155;
-       }
-     }
+const copyArray = function (arr) {
+    const buffer = [];
+    
+    foreach(const el in arr) {
+        buffer.add(el);
     }
     
-    return 166;
-}
+    return buffer;
+};
 
-const val = ff();
-console.log(val);
+const arr = [1, 2, 3];
+const copy = copyArray(arr);
+console.log(arr);
+console.log(copy);

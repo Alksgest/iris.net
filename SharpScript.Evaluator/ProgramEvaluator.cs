@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Reflection;
 using SharpScript.Evaluator.Commands;
 using SharpScript.Evaluator.Helpers;
@@ -54,6 +55,7 @@ public class ProgramEvaluator
             ScopedNode scopedNode => EvaluateScopedNode(scopedNode, envs),
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
+            ForeachExpression foreachExpression => EvaluateForeachExpression(foreachExpression, envs),
             ReturnExpression returnExpression => Evaluate(returnExpression.Expression, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
@@ -70,12 +72,12 @@ public class ProgramEvaluator
 
         return result;
     }
-    
+
     private object? EvaluateFunctionScopeNode(FunctionScopedNode functionScopedNode, List<ScopeEnvironment> envs)
     {
         var localEnv = new ScopeEnvironment($"Function_local_{envs.Count + 1}");
         var newEnvs = new List<ScopeEnvironment>(envs) { localEnv };
-        
+
         foreach (var statement in functionScopedNode.Statements)
         {
             var result = Evaluate(statement, newEnvs);
@@ -85,7 +87,7 @@ public class ProgramEvaluator
                 localEnv.Clear();
                 return rc.Value;
             }
-            
+
             if (statement is ReturnExpression)
             {
                 localEnv.Clear();
@@ -97,11 +99,13 @@ public class ProgramEvaluator
         return null;
     }
 
-    private object? EvaluateScopedNode(ScopedNode scopedNode, IReadOnlyCollection<ScopeEnvironment> environments)
+    private object? EvaluateScopedNode(
+        ScopedNode scopedNode,
+        IReadOnlyCollection<ScopeEnvironment> environments)
     {
         var localEnv = new ScopeEnvironment($"Local_{environments.Count + 1}");
         var newEnvs = new List<ScopeEnvironment>(environments) { localEnv };
-        
+
         foreach (var statement in scopedNode.Statements)
         {
             var result = Evaluate(statement, newEnvs);
@@ -111,7 +115,7 @@ public class ProgramEvaluator
                 localEnv.Clear();
                 return rc;
             }
-            
+
             if (statement is ReturnExpression)
             {
                 localEnv.Clear();
@@ -140,13 +144,13 @@ public class ProgramEvaluator
                 localEnv.Clear();
                 return rc;
             }
-            
+
             if (statement is ReturnExpression)
             {
                 localEnv.Clear();
                 return new ReturnCommand(result);
             }
-            
+
             if (statement is BreakExpression)
             {
                 localEnv.Clear();
@@ -155,6 +159,38 @@ public class ProgramEvaluator
         }
 
         localEnv.Clear();
+        return null;
+    }
+
+    private object? EvaluateForeachExpression(
+        ForeachExpression foreachExpression,
+        List<ScopeEnvironment> envs)
+    {
+        var obj = Evaluate(foreachExpression.Iterable, envs);
+        if (obj is not IEnumerable iterable)
+        {
+            throw new Exception($"Can not iterate {obj?.GetType()}");
+        }
+        
+        foreach (var el in iterable)
+        {
+            var localEnv = new ScopeEnvironment($"Local_{envs.Count + 1}");
+            var scopes = new List<ScopeEnvironment>(envs) { localEnv };
+            EnvironmentHelper.DeclareVariable(scopes, foreachExpression.VariableExpression.Value, el);
+            
+            var result = Evaluate(foreachExpression.Body, scopes);
+
+            if (result is BreakCommand)
+            {
+                break;
+            }
+
+            if (result is ReturnCommand rc)
+            {
+                return rc;
+            }
+        }
+
         return null;
     }
 
