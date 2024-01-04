@@ -275,8 +275,17 @@ public class TokensParser
     private VariableAssignment ParseVariableAssignment(Token nameToken)
     {
         _ = Expect(TokenType.Operator, "=");
-        var value = ParseExpression();
-        return new VariableAssignment(nameToken.Value, value);
+
+        if(Match(TokenType.Punctuation, "{"))
+        {
+            var value = ParseDictionaryExpression();
+            return new VariableAssignment(nameToken.Value, value);
+        }
+        else
+        {
+            var value = ParseExpression();
+            return new VariableAssignment(nameToken.Value, value);
+        }
     }
 
     private VariableDeclaration ParseConstVariableDeclaration()
@@ -372,10 +381,7 @@ public class TokensParser
 
             pairs.Add(new KeyValuePair<string, NodeExpression>(key.Value, expression));
 
-            if (Match(TokenType.Punctuation, ","))
-            {
-                _ = Expect(TokenType.Punctuation, ",");
-            }
+            _ = Expect(TokenType.Punctuation, ",");
         }
 
         _ = Expect(TokenType.Punctuation, "}");
