@@ -9,7 +9,6 @@ internal static class EnvironmentHelper
     internal static object? GetVariableValue(IEnumerable<ScopeEnvironment> environments, string name)
     {
         var objectInScope = GetVariableInScope(environments, name);
-
         return objectInScope?.Object;
     }
 
@@ -58,12 +57,10 @@ internal static class EnvironmentHelper
 
         var lastEnv = environments.Last();
 
-        if (lastEnv.Variables.ContainsKey(name))
+        if (!lastEnv.Variables.TryAdd(name, value))
         {
             throw new Exception($"Variable {name} is already declared");
         }
-
-        lastEnv.Variables[name] = value;
     }
 
     private static WrappedEntity? CreateWrappedEntity(string name, object? value)

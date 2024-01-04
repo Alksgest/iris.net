@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using Iris.Net.Helpers;
+﻿using Iris.Net.Helpers;
 
 namespace Iris.Net;
 
@@ -22,8 +21,6 @@ public static class Program
             Console.WriteLine(arg);
         }
 
-        // var path = "E:/PersonalData/OwnProjects/SharpScript/Projects/test-project";
-        
         var path = Environment.CurrentDirectory;
 
         var (stringCommand, filePath) = PrepareArguments(args);

@@ -171,13 +171,13 @@ public class ProgramEvaluator
         {
             throw new Exception($"Can not iterate {obj?.GetType()}");
         }
-        
+
         foreach (var el in iterable)
         {
             var localEnv = new ScopeEnvironment($"Local_{envs.Count + 1}");
             var scopes = new List<ScopeEnvironment>(envs) { localEnv };
             EnvironmentHelper.DeclareVariable(scopes, foreachExpression.VariableExpression.Value, el);
-            
+
             var result = Evaluate(foreachExpression.Body, scopes);
 
             if (result is BreakCommand)
@@ -358,18 +358,18 @@ public class ProgramEvaluator
         FunctionDeclaration functionDeclaration,
         IReadOnlyCollection<ScopeEnvironment> envs)
     {
-        object? Func(object[] inputArgs) => ExecuteFunctionBody(inputArgs, functionDeclaration.Function, envs);
-
         EnvironmentHelper.DeclareVariable(envs, functionDeclaration.Name, Func);
         return Func;
+
+        object? Func(object[] inputArgs) => ExecuteFunctionBody(inputArgs, functionDeclaration.Function, envs);
     }
 
     private Func<object[], object?> EvaluateFunctionAssignmentExpression(
         FunctionExpression functionExpression,
         IReadOnlyCollection<ScopeEnvironment> envs)
     {
-        object? Func(object[] inputArgs) => ExecuteFunctionBody(inputArgs, functionExpression.Value, envs);
         return Func;
+        object? Func(object[] inputArgs) => ExecuteFunctionBody(inputArgs, functionExpression.Value, envs);
     }
 
     private object? ExecuteFunctionBody(
@@ -388,9 +388,7 @@ public class ProgramEvaluator
         }
 
         var totalScope = new List<ScopeEnvironment>(envs) { scope };
-        var obj = Evaluate(function.Body, totalScope);
-
-        return obj;
+        return Evaluate(function.Body, totalScope);
     }
 
     private object? EvaluateFunctionCallExpression(
@@ -413,48 +411,58 @@ public class ProgramEvaluator
     {
         if (func is MethodInfo method)
         {
-            var parameterInfos = method.GetParameters();
-
-            if (parameterInfos.Length == 0)
-            {
-                return method.Invoke(self, null);
-            }
-
-            if (args.Count < parameterInfos.Length)
-            {
-                for (var i = args.Count; i < parameterInfos.Length; ++i)
-                {
-                    args.Add(parameterInfos[i].DefaultValue);
-                }
-            }
-
-            var theLastParam = parameterInfos[^1];
-            var paramAttribute = theLastParam
-                .CustomAttributes
-                .SingleOrDefault(el => el.AttributeType == typeof(ParamArrayAttribute));
-
-            var argsArray = args.ToArray();
-            if (paramAttribute != null)
-            {
-                var normalArguments = argsArray[..(parameterInfos.Length - 1)];
-                var @params = argsArray[(parameterInfos.Length - 1)..args.Count];
-                var newArgs = new object[normalArguments.Length + 1];
-
-                normalArguments.CopyTo(newArgs, 0);
-                newArgs[^1] = @params;
-
-                return method.Invoke(self, newArgs);
-            }
-
-            var invokeResult = method.Invoke(self, argsArray);
-            return invokeResult;
+            return CallCSharpFunction(method, args, self);
         }
 
-        // This mean declared function from source code
+        return CallDeclaredFunction(func, args);
+    }
+
+    private static object? CallDeclaredFunction(object? func, List<object?> args)
+    {
+        // This means declared function from source code
         var del = func as Delegate;
 
         var dynamicInvokeResult = del?.DynamicInvoke(new object?[] { args.ToArray() });
         return dynamicInvokeResult;
+    }
+
+    private static object? CallCSharpFunction(MethodBase method, List<object?> args, object? self = null)
+    {
+        var parameterInfos = method.GetParameters();
+
+        if (parameterInfos.Length == 0)
+        {
+            return method.Invoke(self, null);
+        }
+
+        if (args.Count < parameterInfos.Length)
+        {
+            for (var i = args.Count; i < parameterInfos.Length; ++i)
+            {
+                args.Add(parameterInfos[i].DefaultValue);
+            }
+        }
+
+        var theLastParam = parameterInfos[^1];
+        var paramAttribute = theLastParam
+            .CustomAttributes
+            .SingleOrDefault(el => el.AttributeType == typeof(ParamArrayAttribute));
+
+        var argsArray = args.ToArray();
+        if (paramAttribute != null)
+        {
+            var normalArguments = argsArray[..(parameterInfos.Length - 1)];
+            var @params = argsArray[(parameterInfos.Length - 1)..args.Count];
+            var newArgs = new object[normalArguments.Length + 1];
+
+            normalArguments.CopyTo(newArgs, 0);
+            newArgs[^1] = @params;
+
+            return method.Invoke(self, newArgs);
+        }
+
+        var invokeResult = method.Invoke(self, argsArray);
+        return invokeResult;
     }
 
     private object? EvaluateVariableAssignment(
@@ -498,7 +506,7 @@ public class ProgramEvaluator
         return stringExpression.Value[1..^1];
     }
 
-    private object? EvaluateVariableExpression(
+    private static object? EvaluateVariableExpression(
         PrimaryExpression<string> variableExpression,
         IReadOnlyCollection<ScopeEnvironment> environments)
     {
