@@ -1,11 +1,9 @@
-﻿using Iris.Net.Evaluator;
-using Iris.Net.Lexer;
-using Iris.Net.Parser;
-using System;
+﻿using System.Diagnostics;
+using Iris.Net.Helpers;
 
 namespace Iris.Net;
 
-public enum IrisCommands
+public enum IrisCommand
 {
     Start = 0,
     Build
@@ -24,48 +22,86 @@ public static class Program
             Console.WriteLine(arg);
         }
 
-        // if (args.Length == 0)
-        // {
-        //     ConsoleHelper.SetErrorColor();
-        //     Console.WriteLine("No file or command to execute");
-        //     ConsoleHelper.ResetColor();
-        //     return;
-        // }
+        // var path = "E:/PersonalData/OwnProjects/SharpScript/Projects/test-project";
+        
+        var path = Environment.CurrentDirectory;
 
-        var fileOrCommand = "build" ?? args[0];
+        var (stringCommand, filePath) = PrepareArguments(args);
 
-        var isCommand = Enum
-            .GetNames(typeof(IrisCommands))
-            .Select(el => el.ToLower())
-            .Contains(fileOrCommand);
-
-        if (isCommand)
+        if (stringCommand == null)
         {
-            _ = Enum.TryParse(string.Concat(fileOrCommand[..1].ToUpper(), fileOrCommand.AsSpan(1)),
-                out IrisCommands command);
-
-            switch (command)
-            {
-                case IrisCommands.Start:
-                    break;
-                case IrisCommands.Build:
-                    ProjectBuilder.Build();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            return;
         }
-        else
+
+        var command = ParseCommand(stringCommand);
+
+        if (command == null)
         {
-            var tokenizer = new Tokenizer();
+            return;
+        }
 
-            var fileContent = File.ReadAllText(fileOrCommand);
+        switch (command)
+        {
+            case IrisCommand.Start:
+                ProjectBuilder.Start(path, filePath);
+                break;
+            case IrisCommand.Build:
+                ProjectBuilder.Build(path);
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
 
-            var tokens = tokenizer.Process(fileContent);
-            var parser = new TokensParser(tokens);
-            var tree = parser.ParseTokens();
-            var evaluator = new ProgramEvaluator();
-            evaluator.Evaluate(tree);
+    private static IrisCommand? ParseCommand(string stringCommand)
+    {
+        var isCommand = Enum
+            .GetNames(typeof(IrisCommand))
+            .Select(el => el.ToLower())
+            .Contains(stringCommand);
+
+        if (!isCommand)
+        {
+            ConsoleHelper.SetErrorColor();
+            Console.WriteLine($"{stringCommand} command is unknown.");
+            ConsoleHelper.ResetColor();
+            return null;
+        }
+
+        _ = Enum.TryParse(string.Concat(stringCommand[..1].ToUpper(), stringCommand.AsSpan(1)),
+            out IrisCommand command);
+
+        return command;
+    }
+
+    private static (string?, string?) PrepareArguments(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 0:
+                ConsoleHelper.SetErrorColor();
+                Console.WriteLine("No command to execute");
+                ConsoleHelper.ResetColor();
+                return (null, null);
+            case 1:
+                return (args[0], null);
+            case 2:
+            {
+                var filePath = args[1];
+                var isFile = File.Exists(filePath);
+
+                if (!isFile)
+                {
+                    ConsoleHelper.SetErrorColor();
+                    Console.WriteLine("No file to execute");
+                    ConsoleHelper.ResetColor();
+                    return (null, null);
+                }
+
+                return (args[0], args[1]);
+            }
+            default:
+                throw new Exception("Incorrect number of arguments");
         }
     }
 }

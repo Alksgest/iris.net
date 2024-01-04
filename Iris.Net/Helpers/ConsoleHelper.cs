@@ -1,4 +1,4 @@
-namespace Iris.Net;
+namespace Iris.Net.Helpers;
 
 public static class ConsoleHelper
 {
