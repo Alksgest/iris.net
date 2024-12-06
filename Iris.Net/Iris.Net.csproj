@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>iris</AssemblyName>
+        <LangVersion>12</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

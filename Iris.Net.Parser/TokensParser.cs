@@ -12,7 +12,7 @@ namespace Iris.Net.Parser;
 public class TokensParser
 {
     private readonly List<Token> _tokens;
-    private int _currentTokenIndex = 0;
+    private int _currentTokenIndex;
 
     private readonly List<Node> _statements;
 
@@ -39,18 +39,9 @@ public class TokensParser
 
     private Node ParseStatement()
     {
-        if (Match(TokenType.Keyword, "const"))
+        if (Match(TokenType.Keyword, ["let", "const"]))
         {
-            _ = Expect(TokenType.Keyword, "const");
-            var node = ParseConstVariableDeclaration();
-            _ = Expect(TokenType.Punctuation, ";");
-            return node;
-        }
-
-        if (Match(TokenType.Keyword, "let"))
-        {
-            _ = Expect(TokenType.Keyword, "let");
-            var node = ParseLetVariableDeclaration();
+            var node = ParseVariableDeclaration();
 
             if (!MatchPrev(TokenType.Punctuation, "}"))
             {
@@ -75,7 +66,7 @@ public class TokensParser
 
             return new WhileExpression(condition, body!);
         }
-        
+
         if (Match(TokenType.Keyword, "foreach"))
         {
             var hasParentheses = false;
@@ -85,20 +76,54 @@ public class TokensParser
                 hasParentheses = true;
                 _ = Expect(TokenType.Punctuation, "(");
             }
-            _ = Expect(TokenType.Keyword, "const");
+
+            _ = Expect(TokenType.Keyword, ["let", "const"]);
             var token = Expect(TokenType.Identifier);
             var variableExpression = new VariableExpression(token.Value);
             _ = Expect(TokenType.Keyword, "in");
             var iEnumerable = ParseExpression();
-            
+
             if (hasParentheses)
             {
                 _ = Expect(TokenType.Punctuation, ")");
             }
-            
+
             var body = ParseScopedNode(ScopeType.Breakable) as BreakableScopedNode;
 
             return new ForeachExpression(variableExpression, iEnumerable, body!);
+        }
+
+        if (Match(TokenType.Keyword, "for"))
+        {
+            var hasParentheses = false;
+            _ = Expect(TokenType.Keyword, "for");
+            if (Match(TokenType.Punctuation, "("))
+            {
+                hasParentheses = true;
+                _ = Expect(TokenType.Punctuation, "(");
+            }
+            
+            var initializer = ParseVariableDeclaration();
+            _ = Expect(TokenType.Punctuation, ";");
+            
+            var condition = ParseExpression();
+            _ = Expect(TokenType.Punctuation, ";");
+
+            var token = Expect(TokenType.Identifier);
+            var increment = ParseVariableAssignment(token);
+
+            if (hasParentheses)
+            {
+                _ = Expect(TokenType.Punctuation, ")");
+            }
+
+            if (Match(TokenType.Punctuation, "{"))
+            {
+                var body = ParseScopedNode(ScopeType.Breakable) as BreakableScopedNode;
+                return new ForExpression(initializer, condition, increment, body);
+            }
+
+            return new ForExpression(initializer, condition, increment);
         }
 
         if (Match(TokenType.Keyword, "break"))
@@ -220,7 +245,7 @@ public class TokensParser
             ScopeType.Function => new FunctionScopedNode(),
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
         };
-        
+
         while (!Match(TokenType.Punctuation, "}"))
         {
             var node = ParseStatement();
@@ -234,17 +259,17 @@ public class TokensParser
 
     private Node ParseIdentifierExpression()
     {
-        // assign value if left part if variable name
-        var nameToken = Expect(TokenType.Identifier);
+        // assign value if left part is variable name
+        var token = Expect(TokenType.Identifier);
 
         if (Match(TokenType.Operator, "="))
         {
-            return ParseVariableAssignment(nameToken);
+            return ParseVariableAssignment(token);
         }
 
         if (Match(TokenType.Punctuation, "("))
         {
-            return ParseFunctionCall(nameToken.Value);
+            return ParseFunctionCall(token.Value);
         }
 
         _currentTokenIndex--;
@@ -276,7 +301,7 @@ public class TokensParser
     {
         _ = Expect(TokenType.Operator, "=");
 
-        if(Match(TokenType.Punctuation, "{"))
+        if (Match(TokenType.Punctuation, "{"))
         {
             var value = ParseDictionaryExpression();
             return new VariableAssignment(nameToken.Value, value);
@@ -288,17 +313,29 @@ public class TokensParser
         }
     }
 
+    private VariableDeclaration ParseVariableDeclaration()
+    {
+        var token = Expect(TokenType.Keyword);
+
+        return token.Value switch
+        {
+            "let" => ParseLetVariableDeclaration(),
+            "const" => ParseConstVariableDeclaration(),
+            _ => throw new Exception($"Unexpected variable declaration, got {token.Value}")
+        };
+    }
+
     private VariableDeclaration ParseConstVariableDeclaration()
     {
-        var nameToken = Expect(TokenType.Identifier);
+        var token = Expect(TokenType.Identifier);
         _ = Expect(TokenType.Operator, "=");
         var value = ParseExpression();
-        return new VariableDeclaration(nameToken.Value, value);
+        return new VariableDeclaration(token.Value, value);
     }
 
     private VariableDeclaration ParseLetVariableDeclaration()
     {
-        var nameToken = Expect(TokenType.Identifier);
+        var token = Expect(TokenType.Identifier);
         Node? value = null;
 
         if (Match(TokenType.Operator, "="))
@@ -307,7 +344,7 @@ public class TokensParser
             value = ParseExpression();
         }
 
-        return new VariableDeclaration(nameToken.Value, value);
+        return new VariableDeclaration(token.Value, value);
     }
 
     private NodeExpression ParseExpression()
@@ -459,7 +496,7 @@ public class TokensParser
 
             return new VariableExpression(Expect(TokenType.Identifier).Value);
         }
-        
+
         if (Match(TokenType.Punctuation, "["))
         {
             var node = ParseArrayExpression();
@@ -472,37 +509,48 @@ public class TokensParser
             return node;
         }
 
-        throw new Exception("Unexpected expression");
+        throw new Exception($"Unexpected expression, current token is {_tokens[_currentTokenIndex]}");
     }
 
     private static int GetPrecedence(Token op)
     {
-        switch (op.Value)
+        return op.Value switch
         {
-            case ".":
-                return 10;
-            case "*":
-            case "/":
-                return 2;
-            case "+":
-            case "-":
-                return 1;
-            default:
-                return 0;
-        }
+            "." => 10,
+            "*" or "/" => 2,
+            "+" or "-" => 1,
+            _ => 0
+        };
     }
 
     private bool Match(TokenType type, string? value = null)
     {
-        if (_currentTokenIndex >= _tokens.Count) return false;
+        if (_currentTokenIndex >= _tokens.Count)
+        {
+            return false;
+        }
 
         var token = _tokens[_currentTokenIndex];
         return token.Type == type && (value == null || token.Value == value);
     }
+    
+    private bool Match(TokenType type, IEnumerable<string> values)
+    {
+        if (_currentTokenIndex >= _tokens.Count)
+        {
+            return false;
+        }
+
+        var token = _tokens[_currentTokenIndex];
+        return token.Type == type && values.Contains(token.Value);
+    }
 
     private bool MatchNext(TokenType type, string? value = null)
     {
-        if (_currentTokenIndex >= _tokens.Count) return false;
+        if (_currentTokenIndex >= _tokens.Count)
+        {
+            return false;
+        }
 
         var token = _tokens[_currentTokenIndex + 1];
         return token.Type == type && (value == null || token.Value == value);
@@ -510,7 +558,10 @@ public class TokensParser
 
     private bool MatchPrev(TokenType type, string? value = null)
     {
-        if (_currentTokenIndex > _tokens.Count) return false;
+        if (_currentTokenIndex > _tokens.Count)
+        {
+            return false;
+        }
 
         var token = _tokens[_currentTokenIndex - 1];
         return token.Type == type && (value == null || token.Value == value);
@@ -525,5 +576,16 @@ public class TokensParser
 
         throw new Exception(
             $"Expected token {type} with value {value} but got {_tokens[_currentTokenIndex].Type} with value {_tokens[_currentTokenIndex].Value}");
+    }
+
+    private Token Expect(TokenType type, IEnumerable<string> values)
+    {
+        if (Match(type, values))
+        {
+            return _tokens[_currentTokenIndex++];
+        }
+
+        throw new Exception(
+            $"Expected token {type} with one of the value [{string.Concat(values, ',')}] but got {_tokens[_currentTokenIndex].Type} with value {_tokens[_currentTokenIndex].Value}");
     }
 }

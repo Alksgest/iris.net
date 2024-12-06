@@ -2,7 +2,7 @@ namespace Iris.Net.Parser.Models.Ast.Expressions.EmbeddedTypes;
 
 
 /// <summary>
-/// Represents node expression which contains some value of T
+/// Represents a node expression which contains some value of T
 /// </summary>
 /// <typeparam name="T">Type of the containing value</typeparam>
 [Serializable]

@@ -26,33 +26,30 @@ public class Tokenizer
 {
     private List<Token> _tokens = new();
 
-    private readonly List<string> _operators = new()
-        { "=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|", "%", "." };
+    private readonly List<string> _operators =
+        ["=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|", "%", "."];
 
     private readonly List<string>
-        _punctuations = new()
-        {
-            ";", "(", ")", ",", "{", "}", "[", "]", "."
-        }; // I believe that this "." here will not shot me in the leg
+        _punctuations = [";", "(", ")", ",", "{", "}", "[", "]", "."];
 
     private readonly List<string>
-        _keyWords = new()
-        {
+        _keyWords =
+        [
             "const", "let", "if", "else",
             "true", "false", "while", "null",
             "function", "break", "return", "foreach",
-            "in", "import", "from"
-        }; // remove const, add mut
+            "in", "import", "from", "for"
+        ]; // remove const, add mut
 
-    private readonly List<char> _emptySymbols = new() { ' ', '\n', '\t' };
-    private readonly List<char> _stringLiteralIdentifiers = new() { '\"' };
+    private readonly List<char> _emptySymbols = [' ', '\n', '\t'];
+    private readonly List<char> _stringLiteralIdentifiers = ['\"'];
 
     private TokenizerState _tokenizerState = TokenizerState.Start;
 
     public List<Token> Process(string input)
     {
         var tokenBuilder = new StringBuilder();
-        _tokens = new List<Token>();
+        _tokens = [];
 
         foreach (var c in input)
         {

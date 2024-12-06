@@ -25,12 +25,13 @@ public static class Program
 
         var (stringCommand, filePath) = PrepareArguments(args);
 
-        if (stringCommand == null)
-        {
-            return;
-        }
+        // if (stringCommand == null)
+        // {
+        //     return;
+        // }
 
-        var command = ParseCommand(stringCommand);
+        // var command = ParseCommand(stringCommand);
+        var command = ParseCommand("start");
 
         if (command == null)
         {

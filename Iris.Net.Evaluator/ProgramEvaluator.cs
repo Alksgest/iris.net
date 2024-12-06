@@ -21,13 +21,13 @@ public class ProgramEvaluator
 
     public ProgramEvaluator()
     {
-        _globalEnvironment = new("Global");
+        _globalEnvironment = new ScopeEnvironment("Global");
         StandardLibraryInitializer.Init(new List<ScopeEnvironment> { _globalEnvironment });
     }
 
     public object? Evaluate(Node node, List<ScopeEnvironment>? environments = null)
     {
-        var envs = environments ?? new List<ScopeEnvironment> { _globalEnvironment };
+        var envs = environments ?? [_globalEnvironment];
 
         return node switch
         {
@@ -56,6 +56,7 @@ public class ProgramEvaluator
             ConditionalExpression conditionalExpression => EvaluateConditionalExpression(conditionalExpression, envs),
             WhileExpression whileExpression => EvaluateWhileExpression(whileExpression, envs),
             ForeachExpression foreachExpression => EvaluateForeachExpression(foreachExpression, envs),
+            ForExpression forExpression => EvaluateForExpression(forExpression, envs),
             ReturnExpression returnExpression => Evaluate(returnExpression.Expression, envs),
             null => null,
             _ => throw new Exception($"Don't know how to evaluate {node.GetType().Name}")
@@ -166,10 +167,10 @@ public class ProgramEvaluator
         ForeachExpression foreachExpression,
         List<ScopeEnvironment> envs)
     {
-        var obj = Evaluate(foreachExpression.Iterable, envs);
-        if (obj is not IEnumerable iterable)
+        var possibleIterable = Evaluate(foreachExpression.Iterable, envs);
+        if (possibleIterable is not IEnumerable iterable)
         {
-            throw new Exception($"Can not iterate {obj?.GetType()}");
+            throw new Exception($"Can not iterate {possibleIterable?.GetType()}");
         }
 
         foreach (var el in iterable)
@@ -194,9 +195,37 @@ public class ProgramEvaluator
         return null;
     }
 
+    private object? EvaluateForExpression(ForExpression forExpression, List<ScopeEnvironment> envs)
+    {
+        var _ = Evaluate(forExpression.Initializer, envs);
+        var condition = (bool)(Evaluate(forExpression.Condition, envs) ?? false);
+        while (condition)
+        {
+            if (forExpression.Body != null)
+            {
+                var result = Evaluate(forExpression.Body, envs);
+
+                if (result is BreakCommand)
+                {
+                    break;
+                }
+
+                if (result is ReturnCommand rc)
+                {
+                    return rc;
+                }
+            }
+
+            Evaluate(forExpression.Increment, envs);
+            condition = (bool)(Evaluate(forExpression.Condition, envs) ?? false);
+        }
+
+        return null;
+    }
+
     private object? EvaluateWhileExpression(WhileExpression whileExpression, List<ScopeEnvironment> envs)
     {
-        var condition = (bool)Evaluate(whileExpression.Condition, envs)!;
+        var condition = (bool)(Evaluate(whileExpression.Condition, envs) ?? false);
         while (condition)
         {
             var result = Evaluate(whileExpression.Body, envs);
@@ -211,10 +240,10 @@ public class ProgramEvaluator
                 return rc;
             }
 
-            condition = (bool)Evaluate(whileExpression.Condition, envs)!;
+            condition = (bool)(Evaluate(whileExpression.Condition, envs) ?? false);
         }
 
-        return condition;
+        return null;
     }
 
     private object? EvaluateConditionalExpression(
