@@ -197,13 +197,16 @@ public class ProgramEvaluator
 
     private object? EvaluateForExpression(ForExpression forExpression, List<ScopeEnvironment> envs)
     {
-        var _ = Evaluate(forExpression.Initializer, envs);
-        var condition = (bool)(Evaluate(forExpression.Condition, envs) ?? false);
+        var localEnv = new ScopeEnvironment($"Local_{envs.Count + 1}");
+        var newEnvs = new List<ScopeEnvironment>(envs) { localEnv };
+        
+        var _ = Evaluate(forExpression.Initializer, newEnvs);
+        var condition = (bool)(Evaluate(forExpression.Condition, newEnvs) ?? false);
         while (condition)
         {
             if (forExpression.Body != null)
             {
-                var result = Evaluate(forExpression.Body, envs);
+                var result = Evaluate(forExpression.Body, newEnvs);
 
                 if (result is BreakCommand)
                 {
@@ -216,8 +219,8 @@ public class ProgramEvaluator
                 }
             }
 
-            Evaluate(forExpression.Increment, envs);
-            condition = (bool)(Evaluate(forExpression.Condition, envs) ?? false);
+            Evaluate(forExpression.Increment, newEnvs);
+            condition = (bool)(Evaluate(forExpression.Condition, newEnvs) ?? false);
         }
 
         return null;
