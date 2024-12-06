@@ -1,10 +1,6 @@
 namespace Iris.Net.Evaluator.Models.WrappedTypes;
 
-public class WrappedDelegate : WrappedEntity
+public class WrappedDelegate(Delegate value, string name) : WrappedEntity(value, name)
 {
     public Delegate Value => (Delegate)Object;
-
-    public WrappedDelegate(Delegate value, string name) : base(value, name)
-    {
-    }
 }

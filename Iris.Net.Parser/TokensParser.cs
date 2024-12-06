@@ -9,18 +9,11 @@ using Iris.Net.Parser.Models.Ast.Expressions.Statements;
 
 namespace Iris.Net.Parser;
 
-public class TokensParser
+public class TokensParser(List<Token> tokens)
 {
-    private readonly List<Token> _tokens;
     private int _currentTokenIndex;
 
-    private readonly List<Node> _statements;
-
-    public TokensParser(List<Token> tokens)
-    {
-        _statements = new List<Node>();
-        _tokens = tokens;
-    }
+    private readonly List<Node> _statements = new();
 
     public RootNode ParseTokens()
     {
@@ -29,7 +22,7 @@ public class TokensParser
             return new RootNode(_statements);
         }
 
-        while (_currentTokenIndex < _tokens.Count)
+        while (_currentTokenIndex < tokens.Count)
         {
             _statements.Add(ParseStatement());
         }
@@ -363,7 +356,7 @@ public class TokensParser
                 break;
             }
 
-            var op = _tokens[_currentTokenIndex];
+            var op = tokens[_currentTokenIndex];
             if (!Match(TokenType.Operator))
             {
                 throw new ArgumentException($"Invalid operator. Got {op}");
@@ -509,7 +502,7 @@ public class TokensParser
             return node;
         }
 
-        throw new Exception($"Unexpected expression, current token is {_tokens[_currentTokenIndex]}");
+        throw new Exception($"Unexpected expression, current token is {tokens[_currentTokenIndex]}");
     }
 
     private static int GetPrecedence(Token op)
@@ -525,45 +518,45 @@ public class TokensParser
 
     private bool Match(TokenType type, string? value = null)
     {
-        if (_currentTokenIndex >= _tokens.Count)
+        if (_currentTokenIndex >= tokens.Count)
         {
             return false;
         }
 
-        var token = _tokens[_currentTokenIndex];
+        var token = tokens[_currentTokenIndex];
         return token.Type == type && (value == null || token.Value == value);
     }
     
     private bool Match(TokenType type, IEnumerable<string> values)
     {
-        if (_currentTokenIndex >= _tokens.Count)
+        if (_currentTokenIndex >= tokens.Count)
         {
             return false;
         }
 
-        var token = _tokens[_currentTokenIndex];
+        var token = tokens[_currentTokenIndex];
         return token.Type == type && values.Contains(token.Value);
     }
 
     private bool MatchNext(TokenType type, string? value = null)
     {
-        if (_currentTokenIndex >= _tokens.Count)
+        if (_currentTokenIndex >= tokens.Count)
         {
             return false;
         }
 
-        var token = _tokens[_currentTokenIndex + 1];
+        var token = tokens[_currentTokenIndex + 1];
         return token.Type == type && (value == null || token.Value == value);
     }
 
     private bool MatchPrev(TokenType type, string? value = null)
     {
-        if (_currentTokenIndex > _tokens.Count)
+        if (_currentTokenIndex > tokens.Count)
         {
             return false;
         }
 
-        var token = _tokens[_currentTokenIndex - 1];
+        var token = tokens[_currentTokenIndex - 1];
         return token.Type == type && (value == null || token.Value == value);
     }
 
@@ -571,21 +564,21 @@ public class TokensParser
     {
         if (Match(type, value))
         {
-            return _tokens[_currentTokenIndex++];
+            return tokens[_currentTokenIndex++];
         }
 
         throw new Exception(
-            $"Expected token {type} with value {value} but got {_tokens[_currentTokenIndex].Type} with value {_tokens[_currentTokenIndex].Value}");
+            $"Expected token {type} with value {value} but got {tokens[_currentTokenIndex].Type} with value {tokens[_currentTokenIndex].Value}");
     }
 
     private Token Expect(TokenType type, IEnumerable<string> values)
     {
         if (Match(type, values))
         {
-            return _tokens[_currentTokenIndex++];
+            return tokens[_currentTokenIndex++];
         }
 
         throw new Exception(
-            $"Expected token {type} with one of the value [{string.Concat(values, ',')}] but got {_tokens[_currentTokenIndex].Type} with value {_tokens[_currentTokenIndex].Value}");
+            $"Expected token {type} with one of the value [{string.Concat(values, ',')}] but got {tokens[_currentTokenIndex].Type} with value {tokens[_currentTokenIndex].Value}");
     }
 }

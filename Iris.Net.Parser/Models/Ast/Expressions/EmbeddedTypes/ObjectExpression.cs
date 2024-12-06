@@ -4,9 +4,4 @@ namespace Iris.Net.Parser.Models.Ast.Expressions.EmbeddedTypes;
 /// Is not in use
 /// </summary>
 [Serializable]
-public class ObjectExpression : PrimaryExpression<object>
-{
-    public ObjectExpression(object value) : base(nameof(ObjectExpression), value)
-    {
-    }
-}
+public class ObjectExpression(object value) : PrimaryExpression<object>(nameof(ObjectExpression), value);

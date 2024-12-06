@@ -4,17 +4,12 @@ namespace Iris.Net.Parser.Models.Ast.Expressions;
 /// Represents unary expression e.g. "-1" or "!true"
 /// </summary>
 [Serializable]
-public class UnaryExpression : NodeExpression
+public class UnaryExpression(
+    NodeExpression expression,
+    string op,
+    string? name = null)
+    : NodeExpression(name ?? nameof(UnaryExpression))
 {
-    public NodeExpression Left { get; }
-    public string Operator { get; }
-
-    public UnaryExpression(
-        NodeExpression expression,
-        string op,
-        string? name = null) : base(name ?? nameof(UnaryExpression))
-    {
-        Left = expression;
-        Operator = op;
-    }
+    public NodeExpression Left { get; } = expression;
+    public string Operator { get; } = op;
 }

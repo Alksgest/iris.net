@@ -4,10 +4,4 @@ namespace Iris.Net.Parser.Models.Ast.Expressions;
 /// Node expression is a class which represents some kind of expression
 /// </summary>
 [Serializable]
-public abstract class NodeExpression : Node
-{
-    protected NodeExpression(string name) : base(name)
-    {
-        
-    }
-}
+public abstract class NodeExpression(string name) : Node(name);

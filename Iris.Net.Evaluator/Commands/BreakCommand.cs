@@ -10,11 +10,7 @@ public class BreakCommand : Command
     
 }
 
-public class ReturnCommand : Command
+public class ReturnCommand(object? value) : Command
 {
-    public object? Value { get; }
-    public ReturnCommand(object? value)
-    {
-        Value = value;
-    }
+    public object? Value { get; } = value;
 }

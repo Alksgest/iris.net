@@ -2,17 +2,11 @@ using Iris.Net.Evaluator.Models.WrappedTypes;
 
 namespace Iris.Net.Evaluator.Models;
 
-public class ScopeEnvironment
+public class ScopeEnvironment(string name)
 {
-    public string Name { get; }
-    public Guid Id { get; }
+    public string Name { get; } = name;
+    public Guid Id { get; } = Guid.NewGuid();
     public Dictionary<string, WrappedEntity?> Variables { get; } = new();
-
-    public ScopeEnvironment(string name)
-    {
-        Name = name;
-        Id = Guid.NewGuid();
-    }
 
     public void Clear()
     {

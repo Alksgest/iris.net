@@ -2,15 +2,11 @@ using Iris.Net.Evaluator.Attributes.Objects;
 
 namespace Iris.Net.Evaluator.Models.WrappedTypes;
 
-public class WrappedArray : WrappedEntity
+public class WrappedArray(List<object> value, string? name = null) : WrappedEntity(value, name)
 {
     public List<object> Value => (List<object>)Object;
 
     [NestedProperty("length")] public decimal Length => Value.Count;
-
-    public WrappedArray(List<object> value, string? name = null) : base(value, name)
-    {
-    }
 
     [NestedMethod("get")]
     public object GetElementAt(decimal index)

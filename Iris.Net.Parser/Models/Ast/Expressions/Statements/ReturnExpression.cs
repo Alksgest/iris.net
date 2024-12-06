@@ -1,12 +1,7 @@
 namespace Iris.Net.Parser.Models.Ast.Expressions.Statements;
 
 [Serializable]
-public class ReturnExpression : NodeExpression
+public class ReturnExpression(NodeExpression expression) : NodeExpression(nameof(ReturnExpression))
 {
-    public NodeExpression Expression { get; }
-
-    public ReturnExpression(NodeExpression expression) : base(nameof(ReturnExpression))
-    {
-        Expression = expression;
-    }
+    public NodeExpression Expression { get; } = expression;
 }

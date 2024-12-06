@@ -1,12 +1,7 @@
 namespace Iris.Net.Parser.Models.Ast.Declarations;
 
 [Serializable]
-public class VariableDeclaration : Node
+public class VariableDeclaration(string name, Node? value) : Node(name)
 {
-    public Node? Value { get; }
-
-    public VariableDeclaration(string name, Node? value) : base(name)
-    {
-        Value = value;
-    }
+    public Node? Value { get; } = value;
 }

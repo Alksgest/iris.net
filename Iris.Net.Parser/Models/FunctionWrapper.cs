@@ -4,14 +4,8 @@ using Iris.Net.Parser.Models.Ast.Expressions.Statements;
 namespace Iris.Net.Parser.Models;
 
 [Serializable]
-public class FunctionWrapper
+public class FunctionWrapper(ScopedNode body, List<VariableExpression> arguments)
 {
-    public ScopedNode Body { get; }
-    public List<VariableExpression> Arguments { get; set; }
-
-    public FunctionWrapper(ScopedNode body, List<VariableExpression> arguments)
-    {
-        Body = body;
-        Arguments = arguments;
-    }
+    public ScopedNode Body { get; } = body;
+    public List<VariableExpression> Arguments { get; set; } = arguments;
 }

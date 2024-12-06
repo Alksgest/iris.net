@@ -2,11 +2,7 @@ using Iris.Net.Evaluator.Attributes.Objects;
 
 namespace Iris.Net.Evaluator.Models.WrappedTypes;
 
-public class WrappedString: WrappedPrimitive<string> 
+public class WrappedString(string value, string? name = null) : WrappedPrimitive<string>(value, name)
 {
     [NestedProperty("length")] public decimal Length => Value.Length;
-    
-    public WrappedString(string value, string? name = null) : base(value, name)
-    {
-    }
 }

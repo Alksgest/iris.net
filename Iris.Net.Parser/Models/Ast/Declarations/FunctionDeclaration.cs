@@ -1,12 +1,7 @@
 namespace Iris.Net.Parser.Models.Ast.Declarations;
 
 [Serializable]
-public class FunctionDeclaration : Node
+public class FunctionDeclaration(string name, FunctionWrapper function) : Node(name)
 {
-    public FunctionWrapper Function { get; set; }
-
-    public FunctionDeclaration(string name, FunctionWrapper function) : base(name)
-    {
-        Function = function;
-    }
+    public FunctionWrapper Function { get; set; } = function;
 }

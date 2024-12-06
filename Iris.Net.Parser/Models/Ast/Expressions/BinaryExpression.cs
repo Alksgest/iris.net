@@ -4,15 +4,11 @@ namespace Iris.Net.Parser.Models.Ast.Expressions;
 /// Represents binary expression e.g. "2 + 2"
 /// </summary>
 [Serializable]
-public class BinaryExpression : UnaryExpression
+public class BinaryExpression(
+    NodeExpression left,
+    string op,
+    NodeExpression right)
+    : UnaryExpression(left, op, nameof(BinaryExpression))
 {
-    public NodeExpression Right { get; }
-
-    public BinaryExpression(
-        NodeExpression left,
-        string op,
-        NodeExpression right) : base(left, op, nameof(BinaryExpression))
-    {
-        Right = right;
-    }
+    public NodeExpression Right { get; } = right;
 }

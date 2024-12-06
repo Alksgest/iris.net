@@ -3,12 +3,7 @@ using Iris.Net.Parser.Models.Ast.Expressions;
 namespace Iris.Net.Parser.Models.Ast.Assignments;
 
 [Serializable]
-public class VariableAssignment : Node
+public class VariableAssignment(string name, NodeExpression value) : Node(name)
 {
-    public NodeExpression Value { get; }
-
-    public VariableAssignment(string name, NodeExpression value) : base(name)
-    {
-        Value = value;
-    }
+    public NodeExpression Value { get; } = value;
 }

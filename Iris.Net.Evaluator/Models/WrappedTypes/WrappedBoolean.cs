@@ -1,8 +1,3 @@
 namespace Iris.Net.Evaluator.Models.WrappedTypes;
 
-public class WrappedBoolean : WrappedPrimitive<bool>
-{
-    public WrappedBoolean(bool value, string? name = null) : base(value, name)
-    {
-    }
-}
+public class WrappedBoolean(bool value, string? name = null) : WrappedPrimitive<bool>(value, name);

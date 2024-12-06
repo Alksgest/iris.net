@@ -2,17 +2,11 @@ using Iris.Net.Evaluator.Attributes.Objects;
 
 namespace Iris.Net.Evaluator.Models.WrappedTypes;
 
-public abstract class WrappedEntity
+public abstract class WrappedEntity(object o, string? name)
 {
-    [NestedProperty("name")] public string Name { get; set; }
-    public object Object { get; }
+    [NestedProperty("name")] public string Name { get; set; } = name ?? $"temporary_value_of_type_{o.GetType()}";
+    public object Object { get; } = o;
 
-    protected WrappedEntity(object o, string? name)
-    {
-        Object = o;
-        Name = name ?? $"temporary_value_of_type_{o.GetType()}";
-    }
-    
     [NestedMethod("toString")]
     public virtual string ObjectToString()
     {

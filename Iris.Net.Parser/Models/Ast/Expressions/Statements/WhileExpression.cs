@@ -1,14 +1,9 @@
 namespace Iris.Net.Parser.Models.Ast.Expressions.Statements;
 
 [Serializable]
-public class WhileExpression : NodeExpression
+public class WhileExpression(NodeExpression condition, BreakableScopedNode body)
+    : NodeExpression(nameof(WhileExpression))
 {
-    public NodeExpression Condition { get; set; }
-    public BreakableScopedNode Body { get; set; }
-
-    public WhileExpression(NodeExpression condition, BreakableScopedNode body) : base(nameof(WhileExpression))
-    {
-        Condition = condition;
-        Body = body;
-    }
+    public NodeExpression Condition { get; set; } = condition;
+    public BreakableScopedNode Body { get; set; } = body;
 }
