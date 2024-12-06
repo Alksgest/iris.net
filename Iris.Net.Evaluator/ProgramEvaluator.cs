@@ -22,7 +22,7 @@ public class ProgramEvaluator
     public ProgramEvaluator()
     {
         _globalEnvironment = new ScopeEnvironment("Global");
-        StandardLibraryInitializer.Init(new List<ScopeEnvironment> { _globalEnvironment });
+        StandardLibraryInitializer.Init([_globalEnvironment]);
     }
 
     public object? Evaluate(Node node, List<ScopeEnvironment>? environments = null)
@@ -273,7 +273,7 @@ public class ProgramEvaluator
     {
         var elements = arrayExpression.Value.Select((el) => Evaluate(el, envs));
 
-        return new List<object?>(elements);
+        return [..elements];
     }
 
     private Dictionary<string, object> EvaluateDictionaryExpression(
@@ -360,7 +360,7 @@ public class ProgramEvaluator
         List<ScopeEnvironment> envs)
     {
         var args = EvaluateCallArguments(
-            functionCallExpression.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
+            functionCallExpression.Values?.ToArray() ?? [],
             envs);
 
         if (leftValue is WrappedDictionary objectInScope)
@@ -416,7 +416,7 @@ public class ProgramEvaluator
         for (var i = 0; i < args.Count; ++i)
         {
             var variableName = args[i].Value;
-            EnvironmentHelper.DeclareVariable(new[] { scope }, variableName, inputArgs[i]);
+            EnvironmentHelper.DeclareVariable([scope], variableName, inputArgs[i]);
         }
 
         var totalScope = new List<ScopeEnvironment>(envs) { scope };
@@ -433,7 +433,7 @@ public class ProgramEvaluator
 
         var func = EnvironmentHelper.GetVariableValue(environments, funcName);
 
-        var args = EvaluateCallArguments(functionCallExpression.Values?.ToArray() ?? Array.Empty<NodeExpression>(),
+        var args = EvaluateCallArguments(functionCallExpression.Values?.ToArray() ?? [],
             environments);
 
         return CallFunctionWithArguments(func, args);
@@ -454,7 +454,7 @@ public class ProgramEvaluator
         // This means declared function from source code
         var del = func as Delegate;
 
-        var dynamicInvokeResult = del?.DynamicInvoke(new object?[] { args.ToArray() });
+        var dynamicInvokeResult = del?.DynamicInvoke([args.ToArray()]);
         return dynamicInvokeResult;
     }
 

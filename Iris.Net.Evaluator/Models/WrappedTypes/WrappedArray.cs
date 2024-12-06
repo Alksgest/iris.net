@@ -31,6 +31,6 @@ public class WrappedArray(List<object> value, string? name = null) : WrappedEnti
     [NestedMethod("makeCopy")]
     public List<object> MakeCopy()
     {
-        return new (Value);
+        return [..Value];
     }
 }
