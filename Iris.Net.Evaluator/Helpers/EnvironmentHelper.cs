@@ -38,17 +38,20 @@ internal static class EnvironmentHelper
 
     internal static void DeclareVariable(IEnumerable<ScopeEnvironment> envs, string name, object? value)
     {
-        var environments = envs.ToList();
-
-        // we can declare variable only in the last scope
-        var lastEnv = environments.Last();
-
-        if (lastEnv.Variables.ContainsKey(name))
-        {
-            throw new Exception($"Variable {name} is already declared");
-        }
-
-        lastEnv.Variables[name] = CreateWrappedEntity(name, value);
+        var variable = CreateWrappedEntity(name, value);
+        
+        AddVariableToScope(envs, name, variable!);
+        // var environments = envs.ToList();
+        //
+        // // we can declare variable only in the last scope
+        // var lastEnv = environments.Last();
+        //
+        // if (lastEnv.Variables.ContainsKey(name))
+        // {
+        //     throw new Exception($"Variable {name} is already declared");
+        // }
+        //
+        // lastEnv.Variables[name] = CreateWrappedEntity(name, value);
     }
 
     internal static void AddVariableToScope(IEnumerable<ScopeEnvironment> envs, string name, WrappedEntity value)

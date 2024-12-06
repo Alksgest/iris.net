@@ -199,7 +199,7 @@ public class ProgramEvaluator
     {
         var localEnv = new ScopeEnvironment($"Local_{envs.Count + 1}");
         var newEnvs = new List<ScopeEnvironment>(envs) { localEnv };
-        
+
         var _ = Evaluate(forExpression.Initializer, newEnvs);
         var condition = (bool)(Evaluate(forExpression.Condition, newEnvs) ?? false);
         while (condition)
