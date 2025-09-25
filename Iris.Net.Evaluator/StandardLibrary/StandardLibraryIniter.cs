@@ -8,11 +8,11 @@ namespace Iris.Net.Evaluator.StandardLibrary;
 
 public static class StandardLibraryInitializer
 {
-    private static readonly List<Type> Modules = new()
-    {
+    private static readonly List<Type> Modules =
+    [
         typeof(ConsoleLibrary),
         typeof(MathLibrary)
-    };
+    ];
 
     public static void Init(List<ScopeEnvironment> environments)
     {

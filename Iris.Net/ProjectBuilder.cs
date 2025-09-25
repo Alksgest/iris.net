@@ -81,7 +81,7 @@ public static class ProjectBuilder
 
     private static RootNode BuildTree(string filePath)
     {
-        var tokenizer = new Tokenizer();
+        var tokenizer = new Lexer.Lexer();
 
         var fileStream = File.OpenRead(filePath);
         var fileContent = ReadFileStream(fileStream);

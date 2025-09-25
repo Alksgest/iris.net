@@ -13,7 +13,7 @@ public class TokensParser(List<Token> tokens)
 {
     private int _currentTokenIndex;
 
-    private readonly List<Node> _statements = new();
+    private readonly List<Node> _statements = [];
 
     public RootNode ParseTokens()
     {

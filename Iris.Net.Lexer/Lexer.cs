@@ -21,10 +21,10 @@ namespace Iris.Net.Lexer;
 // TODO: handle function creation +
 // TODO: handle scope creation +
 // TODO: handle immutability (let mut)
-// TODO: add data structures as array, dict, object, class +---
-public class Tokenizer
+// TODO: add data structures as array, dict, object, class ++--
+public class Lexer
 {
-    private List<Token> _tokens = new();
+    private List<Token> _tokens = [];
 
     private readonly List<string> _operators =
         ["=", "+", "-", "*", "/", "!", ">", "<", ">=", "<=", "==", "!=", "&&", "||", "&", "|", "%", "."];
@@ -38,7 +38,8 @@ public class Tokenizer
             "const", "let", "if", "else",
             "true", "false", "while", "null",
             "function", "break", "return", "foreach",
-            "in", "import", "from", "for"
+            "in", "import", "from", "for", "struct",
+            "export"
         ]; // remove const, add mut
 
     private readonly List<char> _emptySymbols = [' ', '\n', '\t'];

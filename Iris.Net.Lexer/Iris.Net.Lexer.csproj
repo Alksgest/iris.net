@@ -5,6 +5,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>12</LangVersion>
+        <RootNamespace>Iris.Net.Lexer</RootNamespace>
     </PropertyGroup>
 
 </Project>
